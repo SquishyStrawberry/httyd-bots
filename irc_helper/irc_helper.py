@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Since Imports are based on sys.path, we need to add the parent directory.
 import os
 import re
 import sqlite3
