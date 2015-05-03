@@ -8,7 +8,7 @@ import json
 from bs4 import BeautifulSoup
 
 
-parent_directory = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-2])
+parent_directory = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-3])
 if parent_directory not in sys.path:
     sys.path.insert(0, parent_directory)
 
