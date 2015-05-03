@@ -1,0 +1,3 @@
+beautifulsouop4
+requests
+praw
