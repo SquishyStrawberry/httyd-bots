@@ -1,0 +1,10 @@
+{
+  "nick": "Thornado",
+  "user": "ThornadoAnnouncer",
+  "channel": "#bot-test",
+  "host": "irc.editingarchive.com",
+  "port": 6667,
+  "subreddit": "httyd",
+  "useragent": "Thornado",
+  "message": "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
+}
