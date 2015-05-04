@@ -7,4 +7,9 @@ with open(config_name) as config_file:
     # noinspection PyCallingNonCallable
     bot = Cloudjumper(config_file)
 
-bot.run()
+try:
+    bot.run()
+except KeyboardInterrupt:
+    pass
+finally:
+    bot.quit()
