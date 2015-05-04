@@ -49,10 +49,12 @@ class Thornado(irc_helper.IRCBot):
         if self.table_name not in tables:
             self.post_cursor.execute("CREATE TABLE {} (id INTEGER PRIMARY KEY, post TEXT)".format(self.table_name))
 
+        self.update_posts()
         start_new_thread(self.search_subreddit, tuple())
 
     def search_subreddit(self):
        for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 1, 0):
+            print(self.posts)
             if post.id not in self.posts:
                 self.send_action(self.messages.get("found_post",
                                                    "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}").format
@@ -64,18 +66,26 @@ class Thornado(irc_helper.IRCBot):
 
     def handle_block(self, block):
         super().handle_block(block)
+        self.add_post()
+
+    def add_post(self):
+        self.update_posts()
         post_id = self.queue.get()
+        if post_id and post_id not in self.posts:
+            if not self.posts:
+                self.post_cursor.execute("INSERT INTO {} VALUES (0,?)".format(self.table_name), (post_id,))
+            else:
+                self.post_cursor.execute("INSERT INTO {}(post) VALUES (?)".format(self.table_name), (post_id,))
+        self.queue.task_done()
+
+    def update_posts(self):
         self.post_cursor.execute("SELECT post FROM {}".format(self.table_name))
         posts = tuple(map(lambda x: x[0], self.post_cursor.fetchall()))
-        self.posts = posts
-        if not posts:
-            self.post_cursor.execute("INSERT INTO {} VALUES (0,?)".format(self.table_name), (post_id,))
-        else:
-            self.post_cursor.execute("INSERT INTO {}(post) VALUES (?)".format(self.table_name), (post_id,))
-
-        self.queue.task_done()
+        self.posts = set(posts)
 
     def quit(self, message):
         super().quit(message)
+        while not self.queue.all_tasks_done:
+            self.add_post()
         self.post_database.commit()
         self.post_database.close()
