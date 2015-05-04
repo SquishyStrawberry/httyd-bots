@@ -38,6 +38,6 @@ class Thornado(irc_helper.IRCBot):
                 self.send_action(self.messages.get("found_post",
                                                    "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}").format
                                  (subreddit=self.subreddit, title=post.title, submitter=post.author.name,
-                                  link="https://redd.it/" + post.id))
+                                  link="http://redd.it/" + post.id))
             else:
                 return
