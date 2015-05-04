@@ -7,17 +7,19 @@ import requests
 import json
 from bs4 import BeautifulSoup
 
-
-for i in range(1, 6):
-    parent_directory = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-i])
-    if parent_directory not in sys.path:
-        sys.path.insert(0, parent_directory)
-    try:
-        import irc_helper
-    except ImportError:
-        del sys.path[0]
-    else:
-        break
+try:
+    import irc_helper
+except ImportError:
+    for i in range(1, 6):
+        parent_directory = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-i])
+        if parent_directory not in sys.path:
+            sys.path.insert(0, parent_directory)
+        try:
+            import irc_helper
+        except ImportError:
+            del sys.path[0]
+        else:
+            break
 
 
 # From Django

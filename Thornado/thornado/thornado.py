@@ -7,16 +7,19 @@ import praw
 import praw.helpers
 from _thread import start_new_thread
 
-for i in range(1, 6):
-    parent_directory = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-i])
-    if parent_directory not in sys.path:
-        sys.path.insert(0, parent_directory)
-    try:
-        import irc_helper
-    except ImportError:
-        del sys.path[0]
-    else:
-        break
+try:
+    import irc_helper
+except ImportError:
+    for i in range(1, 6):
+        parent_directory = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-i])
+        if parent_directory not in sys.path:
+            sys.path.insert(0, parent_directory)
+        try:
+            import irc_helper
+        except ImportError:
+            del sys.path[0]
+        else:
+            break
 
 class Thornado(irc_helper.IRCBot):
     def __init__(self, config_file):
