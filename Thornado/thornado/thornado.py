@@ -23,8 +23,10 @@ except ImportError:
         else:
             break
 
+
 def clean_table_name(raw):
     return "".join(c for c in raw if c.isalnum())
+
 
 class Thornado(irc_helper.IRCBot):
     def __init__(self, config_file):
@@ -35,13 +37,13 @@ class Thornado(irc_helper.IRCBot):
         self.post_database = sqlite3.connect(self.config.get("database_name", "subreddits.db"))
         self.post_cursor = self.post_database.cursor()
 
-        self.subreddit = self.config.get("subreddit", "httyd")
+        self.reddit = praw.Reddit(self.config.get("useragent", "Thornado"))
+        self.subreddit = self.config.get("subreddit", "httyd").lower()
         self.table_name = clean_table_name(self.subreddit.capitalize())
 
         self.posts = {}
         self.queue = queue.Queue()
 
-        self.reddit = praw.Reddit(self.config.get("useragent", "Thornado"))
         super().__init__(**{k: v for k, v in self.config.items() if k in needed})
 
         self.post_cursor.execute("SELECT name FROM sqlite_master WHERE type=\"table\"")
@@ -53,16 +55,18 @@ class Thornado(irc_helper.IRCBot):
         start_new_thread(self.search_subreddit, tuple())
 
     def search_subreddit(self):
-       for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 1, 0):
-            print(self.posts)
+        for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 1, 0):
             if post.id not in self.posts:
-                self.send_action(self.messages.get("found_post",
-                                                   "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}").format
-                                 (subreddit=self.subreddit, title=post.title, submitter=post.author.name,
-                                  link="http://redd.it/" + post.id))
+                default = "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
+                message = self.messages.get("found_post", default)
+                message = message.format(subreddit=self.subreddit,
+                                         title=post.title,
+                                         submitter=post.author.name,
+                                         link="http://redd.it/" + post.id)
+                self.send_action(message)
                 self.queue.put(post.id)
-            if not self.started:
-                return
+                if not self.started:
+                    return
 
     def handle_block(self, block):
         super().handle_block(block)
