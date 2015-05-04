@@ -12,4 +12,4 @@ try:
 except KeyboardInterrupt:
     pass
 finally:
-    bot.quit()
+    bot.quit(bot.messages.get("disconnect", "Gotta go save Hiccup from yet another gliding accident..."))

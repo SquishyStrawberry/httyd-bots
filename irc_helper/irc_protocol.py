@@ -100,4 +100,6 @@ class IRCBot(object):
             self.handle_block(msg)
 
     def quit(self, message):
-        pass
+        self.leave_channel(message)
+        self.started = False
+        self.socket.close()

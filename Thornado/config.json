@@ -6,5 +6,8 @@
   "port": 6667,
   "subreddit": "httyd",
   "useragent": "Thornado",
-  "message": "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
+  "messages": {
+    "found_post": "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}",
+    "disconnect": "Gotta go feed my little Thornados."
+  }
 }

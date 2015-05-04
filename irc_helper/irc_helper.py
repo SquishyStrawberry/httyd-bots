@@ -99,8 +99,6 @@ class IRCHelper(IRCBot):
         return block_data  # Yes.
 
     def quit(self, message):
-        self.started = False
-        self.leave_channel(message)
+        super().quit(message)
         self.command_database.commit()
         self.command_database.close()
-        self.socket.close()
