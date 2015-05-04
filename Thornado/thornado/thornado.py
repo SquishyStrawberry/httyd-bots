@@ -5,9 +5,8 @@ import sys
 import json
 import praw
 import praw.helpers
-import sqlite3
-import queue
-from _thread import start_new_thread
+import time
+import threading
 
 try:
     import irc_helper
@@ -17,15 +16,14 @@ except ImportError:
         if parent_directory not in sys.path:
             sys.path.insert(0, parent_directory)
         try:
+            # noinspection PyUnresolvedReferences
             import irc_helper
         except ImportError:
             del sys.path[0]
         else:
             break
 
-
-def clean_table_name(raw):
-    return "".join(c for c in raw if c.isalnum())
+ONE_DAY = 60*60*24
 
 
 class Thornado(irc_helper.IRCBot):
@@ -33,30 +31,24 @@ class Thornado(irc_helper.IRCBot):
         needed = ("user", "nick", "channel", "host", "port")
         self.config = json.loads(config_file.read())
         self.messages = self.config.get("messages", {})
-
-        self.post_database = sqlite3.connect(self.config.get("database_name", "subreddits.db"))
-        self.post_cursor = self.post_database.cursor()
+        try:
+            with open(self.config.get("post_file")) as visited_file:
+                self.posts = set(json.loads(visited_file.read()))
+        except (FileNotFoundError, ValueError):
+            self.posts = set()
 
         self.reddit = praw.Reddit(self.config.get("useragent", "Thornado"))
         self.subreddit = self.config.get("subreddit", "httyd").lower()
-        self.table_name = clean_table_name(self.subreddit.capitalize())
-
-        self.posts = {}
-        self.queue = queue.Queue()
 
         super().__init__(**{k: v for k, v in self.config.items() if k in needed})
 
-        self.post_cursor.execute("SELECT name FROM sqlite_master WHERE type=\"table\"")
-        tables = tuple(map(lambda x: x[0], self.post_cursor.fetchall()))
-        if self.table_name not in tables:
-            self.post_cursor.execute("CREATE TABLE {} (id INTEGER PRIMARY KEY, post TEXT)".format(self.table_name))
-
-        self.update_posts()
-        start_new_thread(self.search_subreddit, tuple())
+        self.thread = threading.Thread(target=self.search_subreddit, daemon=True)
+        self.thread.start()
 
     def search_subreddit(self):
-        for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 1, 0):
-            if post.id not in self.posts:
+        for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 100, 0):
+            post_time = time.time() - post.created
+            if post and post.id not in self.posts and post.author and post_time < self.config.get("post_time", ONE_DAY):
                 default = "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
                 message = self.messages.get("found_post", default)
                 message = message.format(subreddit=self.subreddit,
@@ -64,32 +56,10 @@ class Thornado(irc_helper.IRCBot):
                                          submitter=post.author.name,
                                          link="http://redd.it/" + post.id)
                 self.send_action(message)
-                self.queue.put(post.id)
-                if not self.started:
-                    return
-
-    def handle_block(self, block):
-        super().handle_block(block)
-        self.add_post()
-
-    def add_post(self):
-        self.update_posts()
-        post_id = self.queue.get()
-        if post_id and post_id not in self.posts:
-            if not self.posts:
-                self.post_cursor.execute("INSERT INTO {} VALUES (0,?)".format(self.table_name), (post_id,))
-            else:
-                self.post_cursor.execute("INSERT INTO {}(post) VALUES (?)".format(self.table_name), (post_id,))
-        self.queue.task_done()
-
-    def update_posts(self):
-        self.post_cursor.execute("SELECT post FROM {}".format(self.table_name))
-        posts = tuple(map(lambda x: x[0], self.post_cursor.fetchall()))
-        self.posts = set(posts)
+                self.posts.add(post.id)
+                time.sleep(self.config.get("between_posts", 1))
 
     def quit(self, message):
         super().quit(message)
-        while not self.queue.all_tasks_done:
-            self.add_post()
-        self.post_database.commit()
-        self.post_database.close()
+        with open(self.config.get("post_file"), "w") as visited_file:
+            visited_file.write(json.dumps(list(self.posts)))
