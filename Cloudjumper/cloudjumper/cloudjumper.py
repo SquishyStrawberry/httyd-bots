@@ -75,6 +75,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         "eat": "gulps down {victim}!",
         "deny_superadmin": "doesn't let non-superadmins change superadmin's flags!",
         "eat_inedible": "doesn't feel like eating {victim}!",
+        "eat_superfluous": "has already eaten {victim}!",
         "forget": "forgot one of his tricks!",
         "forget_superfluous": "doesn't know that trick!",
         "ignore_me": "will no longer acknowledge your entrances.",
@@ -104,12 +105,14 @@ class Cloudjumper(irc_helper.IRCHelper):
 
     def __init__(self, config_file):
         needed = ("user", "nick", "channel", "host", "port", "database_name", "response_delay")
-        self.stomach = set()
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
         self.messages = self.config.get("messages", {})
         super().__init__(**{k: v for k, v in self.config.items() if k in needed})
 
+        self.irc_cursor.execute("SELECT name FROM sqlite_master WHERE type=\"table\"")
+        if "Stomach" not in map(lambda x: x[0], self.irc_cursor.fetchall()):
+            self.irc_cursor.execute("CREATE TABLE Stomach (id INTEGER PRIMARY KEY, thing TEXT, real_thing TEXT)")
         self.apply_commands()
         self.add_flag("superadmin", "MysteriousMagenta")
         self.add_flag("superadmin", self.nick)
@@ -153,11 +156,11 @@ class Cloudjumper(irc_helper.IRCHelper):
         elif flag not in Cloudjumper.flags.values():
             raise CloudjumperError("Unknown flag! Valid flags are {}".format(", ".join(Cloudjumper.flags.values())))
         self.irc_cursor.execute("SELECT * FROM flags")
-        if self.irc_cursor.fetchone() is None:
+        if not self.irc_cursor.fetchone():
             self.irc_cursor.execute("INSERT INTO flags VALUES (0,?,?)", (username, flag))
         else:
             self.irc_cursor.execute("SELECT * FROM flags WHERE username=?", (username,))
-            if self.irc_cursor.fetchone() is None:
+            if self.irc_cursor.fetchone():
                 self.irc_cursor.execute("INSERT INTO Flags(username,flags) VALUES (?,?)", (username, flag))
             else:
                 old_flags = self.get_flags(username)
@@ -234,7 +237,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                     trigger, response = trigger.strip(), response.strip()
                     bot.irc_cursor.execute("SELECT * FROM Commands WHERE trigger=? AND response=?",
                                            (trigger, response))
-                    if bot.irc_cursor.fetchone() is None:
+                    if not bot.irc_cursor.fetchone():
                         bot.send_action(self.get_message("learn").format(nick=sender))
 
                         @self.basic_command()
@@ -290,28 +293,35 @@ class Cloudjumper(irc_helper.IRCHelper):
             respond_to = (bot.nick.lower() + "! eat").lower()
             if command == respond_to and len(message.split(" ")) >= 3:
                 victim = message.split(" ", 2)[2]
-                if victim.lower() not in map(lambda x: x.lower(), self.config.get("inedible_victims")):
-                    bot.send_action(self.get_message("eat").format(victim=victim))
-                    bot.stomach.add(victim)
+                if victim.lower() not in map(lambda x: x.lower(), bot.config.get("inedible_victims", [])):
+                    self.irc_cursor.execute("SELECT thing FROM Stomach")
+                    stomach = self.irc_cursor.fetchall()
+                    if victim not in stomach:
+                        bot.send_action(self.get_message("eat").format(victim=victim))
+                        bot.irc_cursor.execute("SELECT * FROM Stomach")
+                        if not bot.irc_cursor.fetchone():
+                            bot.irc_cursor.execute("INSERT INTO Stomach VALUES (0,?,?)", (victim.lower(),victim))
+                        else:
+                            bot.irc_cursor.execute("INSERT INTO Stomach(thing,real_thing) VALUES (?,?)", (victim.lower(),victim))
+                    else:
+                        bot.send_action(bot.get_message("eat_superfluous"))
                 else:
-                    bot.send_action(
-                        self.get_message("eat_inedible").format(victim=victim))
+                    bot.send_action(self.get_message("eat_inedible").format(victim=victim))
                 return True
 
         @self.advanced_command(False)
         def spit(bot: Cloudjumper, message: str, sender: str):
-            bot.stomach = list(bot.stomach)
             command = " ".join(message.split(" ")[:2]).lower()
             respond_to = (bot.nick.lower() + "! spit").lower()
             if command == respond_to and len(message.split(" ")) >= 3:
                 victim = message.split(" ", 2)[2]
-                if victim in bot.stomach:
+                bot.irc_cursor.execute("SELECT * FROM Stomach WHERE thing=?", (victim.lower(),))
+                if bot.irc_cursor.fetchone():
                     # noinspection PyUnresolvedReferences
-                    del bot.stomach[bot.stomach.index(victim)]
+                    bot.irc_cursor.execute("DELETE FROM Stomach WHERE thing=?", (victim.lower(),))
                     bot.send_action("spits out {}!".format(victim))
                 else:
                     bot.send_action("hasn't eaten {} yet!".format(victim))
-            bot.stomach = set(bot.stomach)
             return command == respond_to and len(message.split(" ")) >= 3
 
         @self.advanced_command(False)
@@ -319,8 +329,10 @@ class Cloudjumper(irc_helper.IRCHelper):
             command = " ".join(message.split(" ")[:2]).lower()
             respond_to = (bot.nick.lower() + "! stomach").lower()
             if command == respond_to:
-                stomachs = ", ".join(bot.stomach)
-                if stomachs:
+                self.irc_cursor.execute("SELECT real_thing FROM Stomach")
+                stomach = self.irc_cursor.fetchall()
+                if stomach:
+                    stomachs = ", ".join(map(lambda x: x[0], stomach))
                     bot.send_action(bot.get_message("stomach").format(victims=stomachs))
                 else:
                     bot.send_action(bot.get_message("stomach_empty"))
@@ -331,9 +343,10 @@ class Cloudjumper(irc_helper.IRCHelper):
             command = " ".join(message.split(" ")[:2]).lower()
             respond_to = (bot.nick.lower() + "! vomit").lower()
             if command == respond_to:
-                if bot.stomach:
+                bot.irc_cursor.execute("SELECT * FROM Stomach")
+                if bot.irc_cursor.fetchone():
                     bot.send_action(self.get_message("vomit"))
-                    bot.stomach = set()
+                    bot.irc_cursor.execute("DELETE FROM Stomach")
                 else:
                     bot.send_action(self.get_message("vomit_superfluous"))
                 return True
