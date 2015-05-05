@@ -5,6 +5,7 @@ Currently doesn't comply with RFC section 2.3.1, but it'll get there.
 I just have to find out the freaking format :/
 """
 import socket
+import ssl
 
 
 class IRCError(Exception):
@@ -21,6 +22,7 @@ class IRCBot(object):
         self.started = False
         self.log = print
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = ssl.wrap_socket(self.socket)
         self.socket.connect(self.connection_data)
         self.start_up()
 

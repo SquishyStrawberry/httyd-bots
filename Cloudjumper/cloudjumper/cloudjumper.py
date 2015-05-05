@@ -119,7 +119,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         for i in self.config.get("auto_admin", []):
             self.add_flag("superadmin", i)
-            
+
         self.irc_cursor.execute("SELECT username FROM Flags WHERE flags LIKE \"%s%\"")
         for (user,) in self.irc_cursor.fetchall():
             self.add_flag("admin", user)
