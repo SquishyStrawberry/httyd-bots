@@ -23,11 +23,11 @@ except ImportError:
         else:
             break
 
-ONE_DAY = 60*60*24
+ONE_DAY = 1*60*60*24
 
 
 class Thornado(irc_helper.IRCBot):
-    def __init__(self, config_file):
+    def __init__(self, config_file, auto_start=True):
         needed = ("user", "nick", "channel", "host", "port")
         self.config = json.loads(config_file.read())
         self.messages = self.config.get("messages", {})
@@ -43,7 +43,9 @@ class Thornado(irc_helper.IRCBot):
         super().__init__(**{k: v for k, v in self.config.items() if k in needed})
 
         self.thread = threading.Thread(target=self.search_subreddit, daemon=True)
-        self.thread.start()
+        self.start = self.thread.start
+        if auto_start:
+            self.start()
 
     def search_subreddit(self):
         for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 100, 0):
