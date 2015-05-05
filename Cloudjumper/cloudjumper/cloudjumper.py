@@ -164,7 +164,7 @@ class Cloudjumper(irc_helper.IRCHelper):
             self.irc_cursor.execute("INSERT INTO flags VALUES (0,?,?)", (username, flag))
         else:
             self.irc_cursor.execute("SELECT * FROM flags WHERE username=?", (username,))
-            if self.irc_cursor.fetchone():
+            if not self.irc_cursor.fetchone():
                 self.irc_cursor.execute("INSERT INTO Flags(username,flags) VALUES (?,?)", (username, flag))
             else:
                 old_flags = self.get_flags(username)
@@ -223,8 +223,7 @@ class Cloudjumper(irc_helper.IRCHelper):
             req = requests.get(message.strip(), headers={"User-Agent": "Py3 TitleFinder"})
             if req.ok:
                 soup = BeautifulSoup(req.text)
-                bot.send_action(self.get_message("urltitle").format(
-                    title=soup.title.text))
+                bot.send_action(self.get_message("urltitle").format(title=soup.title.text))
                 # TODO Implement proper Youtube API
             else:
                 bot.send_action("wasn't able to get URL info! [{}]".format(sender, req.status_code))
