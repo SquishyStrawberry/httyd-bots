@@ -108,8 +108,8 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
         self.messages = self.config.get("messages", {})
-        if "inedible_victims" in self.config and self.nick not in self.config["inedible_victims"]:
-            self.config["inedible_victims"].append(self.nick)
+        if self.nick not in self.config.get("inedible_victims", []):
+            self.config.get("inedible_victims", []).append(self.nick.lower())
         super().__init__(**{k: v for k, v in self.config.items() if k in needed})
 
         self.irc_cursor.execute("SELECT name FROM sqlite_master WHERE type=\"table\"")
