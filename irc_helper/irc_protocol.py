@@ -19,7 +19,6 @@ class IRCBot(object):
         self.base_channel = channel
         self.channel = None
         self.started = False
-        # Will implement actual logging later.
         self.log = print
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(self.connection_data)
@@ -44,10 +43,10 @@ class IRCBot(object):
         self.socket.send("JOIN {}\r\n".format(channel).encode())
 
     def get_block(self):
-        message = ""
-        while not ("\n" in message and "\r" in message):
-            message +=  self.socket.recv(1).decode()
-        return message
+        message = b""
+        while not (b"\n" in message and b"\r" in message):
+            message += self.socket.recv(1)
+        return message.decode()
 
     def send_message(self, message, send_to=None):
         if send_to is None:
@@ -64,10 +63,13 @@ class IRCBot(object):
         message_parts = block.split(" ", 1)
         sender = message_parts[0][1:].split("!", 1)[0]
         command = message_parts[1].strip()
+        if "(Throttled: Reconnecting too fast)" in block:
+            raise IRCError("Reconnecting too fast!")
         if self.handle_ping(block):
             return {"command": "PING", "message": command[1:]}
         if sender in (self.nick, self.user) or sender == self.connection_data[0]:
             return {"sender": self.connection_data[0]}
+
         message_info = command.split(" ", 2)
         command, recipient = message_info[:2]
         if len(message_info) >= 3:

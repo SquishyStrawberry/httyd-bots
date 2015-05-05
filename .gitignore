@@ -8,3 +8,5 @@ __pycache__/
 *.db-journal
 
 posts.json
+
+httydenv

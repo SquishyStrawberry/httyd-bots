@@ -49,12 +49,14 @@ class Thornado(irc_helper.IRCBot):
         for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 100, 0):
             post_time = time.time() - post.created
             if post and post.id not in self.posts and post.author and post_time < self.config.get("post_time", ONE_DAY):
-                default = "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
+                default = "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
                 message = self.messages.get("found_post", default)
                 message = message.format(subreddit=self.subreddit,
                                          title=post.title,
                                          submitter=post.author.name,
-                                         link="http://redd.it/" + post.id)
+                                         link="http://redd.it/" + post.id,
+                                         post=post)
+                                         # If you want anything else.
                 self.send_action(message)
                 self.posts.add(post.id)
                 time.sleep(self.config.get("between_posts", 1))

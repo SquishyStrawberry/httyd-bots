@@ -10,7 +10,7 @@
   "post_time": 86400,
   "between_posts": 1,
   "messages": {
-    "found_post": "has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}",
+    "found_post": "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}",
     "disconnect": "Gotta go feed my little Thornados."
   }
 }
