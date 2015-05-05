@@ -375,7 +375,7 @@ class Cloudjumper(irc_helper.IRCHelper):
             if message.split(" ")[0] == "terminate":
                 if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
                     bot.log("[Terminating...]")
-                    raise KeyboardInterrupt
+                    bot.quit(bot.get_message("disconnect"))
                 else:
                     bot.send_action(bot.get_message("deny_command"), sender)
 
