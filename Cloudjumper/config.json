@@ -8,6 +8,8 @@
   "fail_after": 10,
   "host": "irc.editingarchive.com",
   "port": 6667,
+  "roll_maximum": 1024,
+  "dice_maximum": 20,
   "inedible_victims": ["Cloudjumper"],
   "auto_admin": ["MysteriousMagenta", "Tomako"],
   "hosts": [],

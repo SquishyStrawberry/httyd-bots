@@ -317,6 +317,39 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.send_action(self.get_message("vomit_superfluous"))
                 return True
 
+        @self.advanced_command(False)
+        def dice(bot: Cloudjumper, message: str, sender: str):
+            command = " ".join(message.split(" ")[:2]).lower()
+            respond_to = (bot.nick.lower() + "! roll").lower()
+            if command == respond_to:
+                if len(message.split(" ")) >= 3:
+                    dice = message.split(" ")[2].split("d")
+                    if len(dice) == 1:
+                        dice = ["1"] + dice
+                    amount, maximum = dice
+                    if not amount.isdigit() or not maximum.isdigit():
+                        bot.send_action(bot.get_message("diceerr").format(nick=sender))
+                    else:
+                        amount, maximum = int(amount), int(maximum)
+                        if bot.config.get("roll_maximum", -1) > -1:
+                            if maximum > bot.config.get("roll_maximum", -1) or maximum < 1:
+                                bot.send_action(bot.get_message("nodice").format(nick=sender))
+
+                        elif bot.config.get("dice_maximum", -1) > -1:
+                            if amount > bot.config.get("dice_maximum", -1) or amount < 1:
+                                bot.send_action(bot.get_message("nodice").format(nick=sender))
+                        else:
+                            rolls = [str(random.randint(1, maximum)) for _ in range(amount)]
+                            if rolls:
+                                bot.send_action(bot.get_message("roll").format(nick=sender, result=", ".join(rolls)))
+                            else:
+                                bot.send_action(bot.get_message("diceerr").format(nick=sender))
+                else:
+                    bot.send_action(bot.get_message("diceerr").format(nick=sender))
+
+
+                return True
+
         @self.advanced_command(True)
         def clear_commands(bot: Cloudjumper, message: str, sender: str):
             if message.lower().split(" ")[0] == "purge_commands":
