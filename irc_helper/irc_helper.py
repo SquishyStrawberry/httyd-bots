@@ -71,19 +71,20 @@ class IRCHelper(IRCBot):
                 else:
                     raise IRCError("Couldn't find commands to use! Recipient was '{}'".format(block_data.get("recipient")))
 
+                if self.since_last_comment(block_data.get("sender", "")) < self.response_delay:
+                    return block_data
 
                 for func_command in command_list:
-                    if self.since_last_comment(block_data.get("sender")) < self.response_delay:
-                        break
                     if func_command(self, block_data.get("message"), block_data.get("sender")):
                         self.times[block_data.get("sender", "")] = time.time()
-                        break
+                        return block_data
+
+                if self.since_last_comment(block_data.get("sender", "")) < self.response_delay:
+                    return block_data
 
                 if block_data.get("recipient") == self.channel:
                     self.irc_cursor.execute("SELECT trigger,response FROM Commands")
                     for trigger, response in self.irc_cursor.fetchall():
-                        if self.since_last_comment(block_data.get("sender")) < self.response_delay:
-                            break
                         matched = re.search(trigger.format(nick=self.nick), block_data.get("message", ""), re.IGNORECASE)
                         if matched:
                             named_groups = {"${nick}": block_data.get("sender")}

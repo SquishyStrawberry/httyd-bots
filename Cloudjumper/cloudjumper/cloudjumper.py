@@ -55,9 +55,9 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.messages = self.config.get("messages", {})
         real_config = {k: v for k, v in self.config.items() if k in needed}
         keys = tuple(real_config.keys())
-        for i in needed:
-            if i not in keys:
-                raise CloudjumperError("Invalid Settings! Setting '{}' was not provided!".format(i))
+        for setting in needed:
+            if setting not in keys:
+                raise CloudjumperError("Invalid Settings! Setting '{}' was not provided!".format(setting))
         super().__init__(**real_config)
 
         if self.nick not in self.config.get("inedible_victims", []):
@@ -70,8 +70,8 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.add_flag("superadmin", "MysteriousMagenta")
         self.add_flag("superadmin", self.nick)
 
-        for i in self.config.get("auto_admin", []):
-            self.add_flag("superadmin", i)
+        for setting in self.config.get("auto_admin", []):
+            self.add_flag("superadmin", setting)
 
         self.irc_cursor.execute("SELECT username FROM Flags WHERE flags LIKE \"%s%\"")
         for (user,) in self.irc_cursor.fetchall():
@@ -166,15 +166,26 @@ class Cloudjumper(irc_helper.IRCHelper):
                 self.log("[Need to confirm via Email \"{}\"!]".format(self.config.get("email")))
             self.register(self.config.get("password"), self.config.get("email"), True)
         if self.logged_in:
-            for i in self.config.get("hosts", []):
-                self.add_host(i)
+            for host in self.config.get("hosts", []):
+                self.add_host(host)
 
-    def is_command(self, command, message):
+    def is_command(self, command, message, need_nick=True):
         command_string_one = (self.nick.lower() + " " + command).lower()
         command_string_two = (self.nick.lower() + "! " + command).lower()
-        message_command = message.lower().split(" ")[:len(command.split(" "))+1]
-        return " ".join(message_command) in (command_string_one, command_string_two)
+        message_command = " ".join(message.lower().split(" ")[:len(command.split(" ")) + (1 if need_nick else 0)])
+        if need_nick:
+            return message_command in (command_string_one, command_string_two)
+        else:
+            return message_command == command
 
+    def cloudjumper_command(self, command, private_message=False, need_nick=True):
+        def inner(func):
+            @self.advanced_command(private_message)
+            def more_inner(bot, message, sender):
+                if bot.is_command(command, message, need_nick):
+                    return func(bot, message, sender)
+
+        return inner
 
     def apply_commands(self):
         """
@@ -199,9 +210,9 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.send_action("wasn't able to get URL info! [{}]".format(sender, req.status_code))
             return True
 
-        @self.advanced_command(False)
+        @self.cloudjumper_command("learn")
         def learn_trigger(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("learn", message) and len(message.split("->", 1)) >= 2:
+            if len(message.split("->", 1)) >= 2:
                 if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin",
                                                                                                       sender):
                     trigger, response = message.split(" ", 2)[2].split("->", 1)
@@ -225,9 +236,9 @@ class Cloudjumper(irc_helper.IRCHelper):
                             nick=sender))
                 return True
 
-        @self.advanced_command(False)
+        @self.cloudjumper_command("forget")
         def forget_trigger(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("forget", message) and len(message.split(" ")) >= 3:
+            if len(message.split(" ")) >= 3:
                 if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin",
                                                                                                       sender):
                     trigger = message.split(" ", 2)[2]
@@ -240,11 +251,11 @@ class Cloudjumper(irc_helper.IRCHelper):
                         bot.send_action(self.get_message("forget_superfluous").format(nick=sender))
                 else:
                     bot.send_action("doesn't want to be trained by {nick}!".format(nick=sender))
-                return True
+            return len(message.split(" ")) >= 3
 
-        @self.advanced_command(False)
+        @self.cloudjumper_command("attack")
         def attack(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("attack", message) and len(message.split(" ")) >= 3:
+            if len(message.split(" ")) >= 3:
                 chosen_attack = random.choice(bot.get_message("attacks"))
                 victim = message.split(" ", 2)[2]
                 if "{target}" in chosen_attack:
@@ -252,11 +263,11 @@ class Cloudjumper(irc_helper.IRCHelper):
                 else:
                     chosen_attack += victim
                 bot.send_action(chosen_attack)
-                return True
+            return len(message.split(" ")) >= 3
 
-        @self.advanced_command(False)
+        @self.cloudjumper_command("eat")
         def eat(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("eat", message) and len(message.split(" ")) >= 3:
+            if len(message.split(" ")) >= 3:
                 victim = message.split(" ", 2)[2]
                 if victim.lower() not in map(lambda x: x.lower(), bot.config.get("inedible_victims", [])):
                     self.irc_cursor.execute("SELECT thing FROM Stomach")
@@ -265,18 +276,19 @@ class Cloudjumper(irc_helper.IRCHelper):
                         bot.send_action(self.get_message("eat").format(victim=victim))
                         bot.irc_cursor.execute("SELECT * FROM Stomach")
                         if not bot.irc_cursor.fetchone():
-                            bot.irc_cursor.execute("INSERT INTO Stomach VALUES (0,?,?)", (victim.lower(),victim))
+                            bot.irc_cursor.execute("INSERT INTO Stomach VALUES (0,?,?)", (victim.lower(), victim))
                         else:
-                            bot.irc_cursor.execute("INSERT INTO Stomach(thing,real_thing) VALUES (?,?)", (victim.lower(),victim))
+                            bot.irc_cursor.execute("INSERT INTO Stomach(thing,real_thing) VALUES (?,?)",
+                                                   (victim.lower(), victim))
                     else:
                         bot.send_action(bot.get_message("eat_superfluous"))
                 else:
                     bot.send_action(self.get_message("eat_inedible").format(victim=victim))
-                return True
+            return len(message.split(" ")) >= 3
 
-        @self.advanced_command(False)
+        @self.cloudjumper_command("spit")
         def spit(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("spit", message) and len(message.split(" ")) >= 3:
+            if len(message.split(" ")) >= 3:
                 victim = message.split(" ", 2)[2]
                 bot.irc_cursor.execute("SELECT * FROM Stomach WHERE thing=?", (victim.lower(),))
                 if bot.irc_cursor.fetchone():
@@ -285,218 +297,185 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.send_action("spits out {}!".format(victim))
                 else:
                     bot.send_action("hasn't eaten {} yet!".format(victim))
-            return command == respond_to and len(message.split(" ")) >= 3
+            return len(message.split(" ")) >= 3
 
-        @self.advanced_command(False)
+        @self.cloudjumper_command("stomach")
         def show_stomach(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("stomach", message):
-                self.irc_cursor.execute("SELECT real_thing FROM Stomach")
-                stomach = self.irc_cursor.fetchall()
-                if stomach:
-                    stomachs = ", ".join(map(lambda x: x[0], stomach))
-                    bot.send_action(bot.get_message("stomach").format(victims=stomachs))
-                else:
-                    bot.send_action(bot.get_message("stomach_empty"))
-                return True
+            self.irc_cursor.execute("SELECT real_thing FROM Stomach")
+            stomach = self.irc_cursor.fetchall()
+            if stomach:
+                stomachs = ", ".join(map(lambda x: x[0], stomach))
+                bot.send_action(bot.get_message("stomach").format(victims=stomachs))
+            else:
+                bot.send_action(bot.get_message("stomach_empty"))
+            return True
 
-        @self.advanced_command(False)
+        @self.cloudjumper_command("vomit")
         def vomit(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("vomit", message):
-                bot.irc_cursor.execute("SELECT * FROM Stomach")
-                if bot.irc_cursor.fetchone():
-                    bot.send_action(self.get_message("vomit"))
-                    bot.irc_cursor.execute("DELETE FROM Stomach")
-                else:
-                    bot.send_action(self.get_message("vomit_superfluous"))
-                return True
+            bot.irc_cursor.execute("SELECT * FROM Stomach")
+            if bot.irc_cursor.fetchone():
+                bot.send_action(self.get_message("vomit"))
+                bot.irc_cursor.execute("DELETE FROM Stomach")
+            else:
+                bot.send_action(self.get_message("vomit_superfluous"))
+            return True
 
-        @self.advanced_command(False)
-        def dice(bot: Cloudjumper, message: str, sender: str):
-            if bot.is_command("roll", message):
-                if len(message.split(" ")) >= 3:
-                    dice = message.split(" ")[2].split("d")
-                    if len(dice) == 1:
-                        dice = ["1"] + dice
-                    amount, maximum = dice
-                    if not amount.isdigit() or not maximum.isdigit():
-                        bot.send_action(bot.get_message("diceerr").format(nick=sender))
-                    else:
-                        amount, maximum = int(amount), int(maximum)
-                        if bot.config.get("roll_maximum", -1) > -1:
-                            if maximum > bot.config.get("roll_maximum", -1) or maximum < 1:
-                                bot.send_action(bot.get_message("nodice").format(nick=sender))
+        @self.cloudjumper_command("roll")
+        def roll_dice(bot: Cloudjumper, message: str, sender: str):
+            erred = False
+            if len(message.split(" ")) >= 3:
+                die = message.split(" ")[2].split("d")
+                if len(die) == 1:
+                    die = ["1"] + die
+                amount, maximum = die
+                if not amount.isdigit() or not maximum.isdigit():
 
-                        elif bot.config.get("dice_maximum", -1) > -1:
-                            if amount > bot.config.get("dice_maximum", -1) or amount < 1:
-                                bot.send_action(bot.get_message("nodice").format(nick=sender))
-                        else:
-                            rolls = [str(random.randint(1, maximum)) for _ in range(amount)]
-                            if rolls:
-                                bot.send_action(bot.get_message("roll").format(nick=sender, result=", ".join(rolls)))
-                            else:
-                                bot.send_action(bot.get_message("diceerr").format(nick=sender))
-                else:
                     bot.send_action(bot.get_message("diceerr").format(nick=sender))
+                else:
+                    amount, maximum = int(amount), int(maximum)
+                    print(amount, maximum)
+                    if bot.config.get("roll_maximum", -1) > -1:
+                        if maximum > bot.config.get("roll_maximum", -1) or maximum < 1:
+                            bot.send_action(bot.get_message("nodice").format(nick=sender))
+                            erred = True
+                    elif bot.config.get("dice_maximum", -1) > -1:
+                        if amount > bot.config.get("dice_maximum", -1) or amount < 1:
+                            bot.send_action(bot.get_message("nodice").format(nick=sender))
+                            erred = True
+                    if not erred:
+                        rolls = [str(random.randint(1, maximum)) for _ in range(amount)]
+                        if rolls:
+                            bot.send_action(bot.get_message("roll").format(nick=sender, result=", ".join(rolls)))
+                        else:
+                            bot.send_action(bot.get_message("diceerr").format(nick=sender))
+            else:
+                bot.send_action(bot.get_message("diceerr").format(nick=sender))
+            return True
 
-
-                return True
-
-        @self.advanced_command(True)
+        @self.cloudjumper_command("purge_commands", True, False)
         def clear_commands(bot: Cloudjumper, message: str, sender: str):
-            if message.lower().split(" ")[0] == "purge_commands":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    bot.irc_cursor.execute("SELECT * FROM Commands")
-                    if not bot.irc_cursor.fetchall():
-                        bot.send_action(self.get_message("purge_commands_superfluous"), sender)
-                    else:
-                        bot.irc_cursor.execute("DELETE FROM Commands")
-                        bot.send_action(self.get_message("purge_commands"), sender)
-
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                bot.irc_cursor.execute("SELECT * FROM Commands")
+                if not bot.irc_cursor.fetchall():
+                    bot.send_action(self.get_message("purge_commands_superfluous"), sender)
                 else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
+                    bot.irc_cursor.execute("DELETE FROM Commands")
+                    bot.send_action(self.get_message("purge_commands"), sender)
 
-        @self.advanced_command(True)
+            else:
+                bot.send_action(bot.get_message("deny_command"), sender)
+            return True
+
+        @self.cloudjumper_command("terminate", True, False)
         def terminate(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0] == "terminate":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    bot.log("[Terminating...]")
-                    bot.quit(bot.get_message("disconnect"))
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                bot.log("[Terminating...]")
+                bot.quit(bot.get_message("disconnect"))
+            else:
+                bot.send_action(bot.get_message("deny_command"), sender)
 
-        @self.advanced_command(True)
+        @self.cloudjumper_command("list_commands", True, False)
         def list_commands(bot: Cloudjumper, message: str, sender: str):
-            if message.lower().split(" ")[0] == "list_commands":
-                bot.irc_cursor.execute("SELECT trigger,response FROM Commands")
-                for trigger, response in bot.irc_cursor.fetchall():
-                    bot.send_message(
-                        self.get_message("print_command").format(trigger=trigger,
-                                                                 response=response),
-                        sender)
-                return True
+            bot.irc_cursor.execute("SELECT trigger,response FROM Commands")
+            for trigger, response in bot.irc_cursor.fetchall():
+                bot.send_message(
+                    self.get_message("print_command").format(trigger=trigger,
+                                                             response=response),
+                    sender)
+            return True
 
-        @self.advanced_command(True)
+        @self.cloudjumper_command("copy_original", True, False)
         def copy_original(bot: Cloudjumper, message: str, sender: str):
-            if message == "copy_original":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    bot.copying = True
-                    bot.send_action(self.get_message("copy_original"), sender)
-                    bot.send_message("list_commands", "Toothless")
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                bot.copying = True
+                bot.send_action(self.get_message("copy_original"), sender)
+                bot.send_message("list_commands", "Toothless")
 
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
+            else:
+                bot.send_action(bot.get_message("deny_command"), sender)
+            return True
 
-        @self.advanced_command(True)
+        @self.cloudjumper_command("add_flag", True, False)
         def add_flag_pm(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0] == "add_flag":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    user, flag = map(lambda x: x.lower(), message.split(" ")[1:3])
-                    try:
-                        if not bot.has_flag("superadmin", sender) and bot.has_flag("superadmin", user):
-                            bot.send_action(
-                                bot.get_message("deny_superadmin"),
-                                sender)
-                        else:
-                            bot.add_flag(flag, user)
-
-                    except CloudjumperError:
-                        bot.send_action(bot.get_message("unknown_flag"), sender)
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                user, flag = map(lambda x: x.lower(), message.split(" ")[1:3])
+                try:
+                    if not bot.has_flag("superadmin", sender) and bot.has_flag("superadmin", user):
+                        bot.send_action(
+                            bot.get_message("deny_superadmin"),
+                            sender)
                     else:
-                        flags = "".join(bot.get_flags(user)) or "None"
-                        bot.send_action(bot.get_message("flag_added").
-                                        format(user=user, flag=flag, flags=flags), sender)
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
+                        bot.add_flag(flag, user)
 
-        @self.advanced_command(True)
+                except CloudjumperError:
+                    bot.send_action(bot.get_message("unknown_flag"), sender)
+                else:
+                    flags = "".join(bot.get_flags(user)) or "None"
+                    bot.send_action(bot.get_message("flag_added").
+                                    format(user=user, flag=flag, flags=flags), sender)
+            else:
+                bot.send_action(bot.get_message("deny_command"), sender)
+            return True
+
+        @self.cloudjumper_command("remove_flag", True, False)
         def rm_flag_pm(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0] == "remove_flag":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    user, flag = map(lambda x: x.lower(), message.split(" ")[1:3])
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                user, flag = map(lambda x: x.lower(), message.split(" ")[1:3])
 
-                    if flag not in bot.get_flags(user):
-                        bot.send_action(bot.get_message("unexisting_flag").format(nick=user))
-                        return
-                    try:
-                        if not bot.has_flag("superadmin", sender) and bot.has_flag("superadmin", user):
-                            bot.send_action(
-                                bot.get_message("deny_superadmin"),
-                                sender)
-                        else:
-                            bot.remove_flag(flag, user)
-
-                    except CloudjumperError:
-                        bot.send_action(bot.get_message("unknown_flag"), sender)
+                if flag not in bot.get_flags(user):
+                    bot.send_action(bot.get_message("unexisting_flag").format(nick=user))
+                    return
+                try:
+                    if not bot.has_flag("superadmin", sender) and bot.has_flag("superadmin", user):
+                        bot.send_action(
+                            bot.get_message("deny_superadmin"),
+                            sender)
                     else:
-                        flags = "".join(bot.get_flags(user)) or "None"
-                        bot.send_action(bot.get_message("flag_removed").
-                                        format(user=user, flag=flag, flags=flags), sender)
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
+                        bot.remove_flag(flag, user)
 
-        @self.advanced_command(True)
+                except CloudjumperError:
+                    bot.send_action(bot.get_message("unknown_flag"), sender)
+                else:
+                    flags = "".join(bot.get_flags(user)) or "None"
+                    bot.send_action(bot.get_message("flag_removed").
+                                    format(user=user, flag=flag, flags=flags), sender)
+            else:
+                bot.send_action(bot.get_message("deny_command"), sender)
+            return True
+
+        @self.cloudjumper_command("reload_config", True, False)
         def reload_config(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0].lower() == "reload_config":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    if not bot.config_file.closed:
-                        bot.config_file.close()
-                    bot.config_file = open(bot.config_file.name, bot.config_file.mode)
-                    bot.config = json.loads(bot.config_file.read())
-                    bot.messages = bot.config.get("messages", {})
-                    bot.send_action(bot.get_message("config_reloaded"), sender)
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                if not bot.config_file.closed:
+                    bot.config_file.close()
+                bot.config_file = open(bot.config_file.name, bot.config_file.mode)
+                bot.config = json.loads(bot.config_file.read())
+                bot.messages = bot.config.get("messages", {})
+                bot.send_action(bot.get_message("config_reloaded"), sender)
 
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
+            else:
+                bot.send_action(bot.get_message("deny_command"), sender)
+            return True
 
-        @self.advanced_command(True)
+        @self.cloudjumper_command("move_channel", True, False)
         def move_channel(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0].lower() == "move_channel":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    channel = message.split(" ")[1].lower()
-                    bot.leave_channel(bot.get_message("switch_channel"))
-                    bot.join_channel(channel)
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                channel = message.split(" ")[1].lower()
+                bot.leave_channel(bot.get_message("switch_channel"))
+                bot.join_channel(channel)
 
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
+            else:
+                bot.send_action(bot.get_message("deny_command"), sender)
+            return True
 
-        @self.advanced_command(True)
-        def move_channel(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0].lower() == "move_channel":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    channel = message.split(" ")[1].lower()
-                    bot.leave_channel(bot.get_message("switch_channel"))
-                    bot.join_channel(channel)
-
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
-
-        @self.advanced_command(True)
-        def move_channel(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0].lower() == "move_channel":
-                if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                    channel = message.split(" ")[1].lower()
-                    bot.leave_channel(bot.get_message("switch_channel"))
-                    bot.join_channel(channel)
-
-                else:
-                    bot.send_action(bot.get_message("deny_command"), sender)
-                return True
-
-        @self.advanced_command(True)
+        @self.cloudjumper_command("ignore_me", True, False)
         def ignore_me(bot: Cloudjumper, message: str, sender: str):
-            if message.split(" ")[0].lower() == "ignore_me":
-                if not bot.has_flag("ignore", sender):
-                    bot.add_flag("ignore", sender)
-                    bot.send_action(bot.get_message("ignore"), sender)
-                else:
-                    bot.send_action(bot.get_message("ignore_superfluous"), sender)
+            if not bot.has_flag("ignore", sender):
+                bot.add_flag("ignore", sender)
+                bot.send_action(bot.get_message("ignore"), sender)
+            else:
+                bot.send_action(bot.get_message("ignore_superfluous"), sender)
+
 
 try:
     with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
