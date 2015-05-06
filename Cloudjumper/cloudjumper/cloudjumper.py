@@ -169,6 +169,13 @@ class Cloudjumper(irc_helper.IRCHelper):
             for i in self.config.get("hosts", []):
                 self.add_host(i)
 
+    def is_command(self, command, message):
+        command_string_one = (self.nick.lower() + " " + command).lower()
+        command_string_two = (self.nick.lower() + "! " + command).lower()
+        message_command = message.lower().split(" ")[:len(command.split(" "))+1]
+        return " ".join(message_command) in (command_string_one, command_string_two)
+
+
     def apply_commands(self):
         """
         A base set of commands.
@@ -194,9 +201,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def learn_trigger(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! learn").lower()
-            if command == respond_to and len(message.split("->", 1)) >= 2:
+            if bot.is_command("learn", message) and len(message.split("->", 1)) >= 2:
                 if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin",
                                                                                                       sender):
                     trigger, response = message.split(" ", 2)[2].split("->", 1)
@@ -222,9 +227,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def forget_trigger(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! forget").lower()
-            if command == respond_to and len(message.split(" ")) >= 3:
+            if bot.is_command("forget", message) and len(message.split(" ")) >= 3:
                 if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin",
                                                                                                       sender):
                     trigger = message.split(" ", 2)[2]
@@ -241,9 +244,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def attack(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! attack").lower()
-            if command == respond_to and len(message.split(" ")) >= 3:
+            if bot.is_command("attack", message) and len(message.split(" ")) >= 3:
                 chosen_attack = random.choice(bot.get_message("attacks"))
                 victim = message.split(" ", 2)[2]
                 if "{target}" in chosen_attack:
@@ -255,9 +256,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def eat(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! eat").lower()
-            if command == respond_to and len(message.split(" ")) >= 3:
+            if bot.is_command("eat", message) and len(message.split(" ")) >= 3:
                 victim = message.split(" ", 2)[2]
                 if victim.lower() not in map(lambda x: x.lower(), bot.config.get("inedible_victims", [])):
                     self.irc_cursor.execute("SELECT thing FROM Stomach")
@@ -277,9 +276,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def spit(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! spit").lower()
-            if command == respond_to and len(message.split(" ")) >= 3:
+            if bot.is_command("spit", message) and len(message.split(" ")) >= 3:
                 victim = message.split(" ", 2)[2]
                 bot.irc_cursor.execute("SELECT * FROM Stomach WHERE thing=?", (victim.lower(),))
                 if bot.irc_cursor.fetchone():
@@ -292,9 +289,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def show_stomach(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! stomach").lower()
-            if command == respond_to:
+            if bot.is_command("stomach", message):
                 self.irc_cursor.execute("SELECT real_thing FROM Stomach")
                 stomach = self.irc_cursor.fetchall()
                 if stomach:
@@ -306,9 +301,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def vomit(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! vomit").lower()
-            if command == respond_to:
+            if bot.is_command("vomit", message):
                 bot.irc_cursor.execute("SELECT * FROM Stomach")
                 if bot.irc_cursor.fetchone():
                     bot.send_action(self.get_message("vomit"))
@@ -319,9 +312,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         @self.advanced_command(False)
         def dice(bot: Cloudjumper, message: str, sender: str):
-            command = " ".join(message.split(" ")[:2]).lower()
-            respond_to = (bot.nick.lower() + "! roll").lower()
-            if command == respond_to:
+            if bot.is_command("roll", message):
                 if len(message.split(" ")) >= 3:
                     dice = message.split(" ")[2].split("d")
                     if len(dice) == 1:
@@ -512,4 +503,3 @@ try:
         Cloudjumper.defaults = json.loads(default_file.read())
 except FileNotFoundError as e:
     raise CloudjumperError("No defaults file was found!") from e
-
