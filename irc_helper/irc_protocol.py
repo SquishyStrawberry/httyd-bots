@@ -34,8 +34,6 @@ class IRCBot(object):
             block = self.get_block()
             if self.handle_ping(block):
                 continue
-            elif "nickname is already in use" in block.lower():
-                raise IRCError("Nickname '{}' is already in use!".format(self.nick))
             elif "found your hostname" in block.lower():
                 self.socket.send("USER {0} 0 * :{0}\r\n".format(self.user).encode())
                 self.socket.send("NICK {}\r\n".format(self.nick).encode())

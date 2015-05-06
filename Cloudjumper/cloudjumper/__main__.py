@@ -12,4 +12,5 @@ try:
 except KeyboardInterrupt:
     pass
 finally:
-    bot.quit(bot.get_message("disconnect"))
+    if bot.started:
+        bot.quit(bot.get_message("disconnect"))
