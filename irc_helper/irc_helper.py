@@ -62,7 +62,7 @@ class IRCHelper(IRCBot):
 
     def handle_block(self, block):
         block_data = super().handle_block(block)
-        if block_data.get("sender") != self.nick:
+        if block_data.get("sender", "").lower() not in (self.nick, self.connection_data[0]):
             if block_data.get("command", "").upper() == "PRIVMSG" and block_data.get("message"):
                 if block_data.get("recipient").lower() == self.channel.lower():
                     command_list = self.channel_commands

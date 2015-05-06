@@ -44,73 +44,24 @@ class Cloudjumper(irc_helper.IRCHelper):
         "whitelist": "w",
         "ignore": "i",
     }
-    defaults = {
-        "announce_arrival": "enters the arena!",
-        "greetings": [
-            "welcomingly nuzzles and licks {nick}",
-            "welcomingly nuzzles {nick}",
-            "welcomingly licks {nick}",
-            "welcomingly tail-slaps {nick}",
-            "playfully nuzzles and licks {nick}",
-            "playfully nuzzles {nick}",
-            "playfully licks {nick}",
-            "playfully tail-slaps {nick}",
-            "tosses a pebble at {nick}",
-            "joyfully waggles his tail at {nick}'s arrival",
-            "cheerfully waggles his tail at {nick}'s arrival",
-            "playfully waggles his tail at {nick}'s arrival",
-            "welcomes {nick} with a cheerful warble"
-        ],
-        "attacks": [
-            "shoots a plasma bolt at {target}!",
-            "hurls a pebble at {target}!",
-            "tackles {target}!",
-            "tail-whips {target}!",
-            "charges {target}!",
-            "unsheathes his teeth and bites {target}!"
-        ],
-        "deny": "won't follow {nick}'s instructions!",
-        "disconnect": "Gotta go save Hiccup from yet another gliding accident...",
-        "switch_channel": "Gotta go to fly with Hiccup...",
-        "eat": "gulps down {victim}!",
-        "deny_superadmin": "doesn't let non-superadmins change superadmin's flags!",
-        "eat_inedible": "doesn't feel like eating {victim}!",
-        "eat_superfluous": "has already eaten {victim}!",
-        "forget": "forgot one of his tricks!",
-        "forget_superfluous": "doesn't know that trick!",
-        "ignore_me": "will no longer acknowledge your entrances.",
-        "ignore_me_superfluous": "is already ignoring you.",
-        "learn": "has been trained by {nick}!",
-        "learn_superfluous": "already knows that trick!",
-        "learn_deny": "doesn't want to be trained by {nick}!",
-        "learn_error": "tilts his head in confusion towards {nick}...",
-        "print_command": "{trigger} -> {response}",
-        "purge_commands": "forgot all of his tricks!",
-        "purge_commands_superfluous": "hasn't learned any tricks to forget!",
-        "spit": "spits out {victim}!",
-        "spit_superfluous": "hasn't eaten {victim} yet!",
-        "stomach": "is digesting {victims}...",
-        "stomach_empty": "isn't digesting anyone...",
-        "urltitle": "finds the url title to be: \"\u0002{title}\"",
-        "vomit": "empties his stomach!",
-        "vomit_superfluous": "hasn't eaten anything yet!",
-        "flag_added": "successfully added {flag} to {user}, new flags: {flags}",
-        "flag_remove": "successfully removed {flag} from {user}, new flags: {flags}",
-        "unexisting_flag": "knows that {nick} doesn't have that flag!",
-        "unknown_flag": "doesn't know that flag!",
-        "deny_command": "won't listen to you!",
-        "config_closed": "can't access his config!",
-        "config_reloaded": "successfully reloaded his config!"
-    }
+    defaults = None
 
     def __init__(self, config_file):
-        needed = ("user", "nick", "channel", "host", "port", "database_name", "response_delay")
+        needed = ("user", "nick", "channel",
+                  "host", "port", "database_name",
+                  "response_delay", "fail_after", "check_login")
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
         self.messages = self.config.get("messages", {})
+        real_config = {k: v for k, v in self.config.items() if k in needed}
+        keys = tuple(real_config.keys())
+        for i in needed:
+            if i not in keys:
+                raise CloudjumperError("Invalid Settings! Setting '{}' was not provided!".format(i))
+        super().__init__(**real_config)
+
         if self.nick not in self.config.get("inedible_victims", []):
             self.config.get("inedible_victims", []).append(self.nick.lower())
-        super().__init__(**{k: v for k, v in self.config.items() if k in needed})
 
         self.irc_cursor.execute("SELECT name FROM sqlite_master WHERE type=\"table\"")
         if "Stomach" not in map(lambda x: x[0], self.irc_cursor.fetchall()):
@@ -207,6 +158,16 @@ class Cloudjumper(irc_helper.IRCHelper):
 
     def get_message(self, message_key):
         return self.messages.get(message_key, Cloudjumper.defaults.get(message_key))
+
+    def start_up(self):
+        super().start_up()
+        if self.config.get("password"):
+            if self.config.get("email"):
+                self.log("[Need to confirm via Email \"{}\"!]".format(self.config.get("email")))
+            self.register(self.config.get("password"), self.config.get("email"), True)
+        if self.logged_in:
+            for i in self.config.get("hosts", []):
+                self.add_host(i)
 
     def apply_commands(self):
         """
@@ -512,3 +473,10 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.send_action(bot.get_message("ignore"), sender)
                 else:
                     bot.send_action(bot.get_message("ignore_superfluous"), sender)
+
+try:
+    with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
+        Cloudjumper.defaults = json.loads(default_file.read())
+except FileNotFoundError as e:
+    raise CloudjumperError("No defaults file was found!") from e
+

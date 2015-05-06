@@ -2,10 +2,15 @@
   "channel": "#bot-test",
   "user": "JumperOfClouds",
   "nick": "Cloudjumper",
+  "password": "",
+  "email": "",
+  "check_login": true,
+  "fail_after": 10,
   "host": "irc.editingarchive.com",
   "port": 6667,
   "inedible_victims": ["Cloudjumper"],
   "auto_admin": ["MysteriousMagenta", "Tomako"],
+  "hosts": [],
   "database_name": "irc_database.db",
   "response_delay": 3
 }
