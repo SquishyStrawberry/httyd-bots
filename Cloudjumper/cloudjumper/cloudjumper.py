@@ -323,6 +323,9 @@ class Cloudjumper(irc_helper.IRCHelper):
         @self.cloudjumper_command("roll")
         def roll_dice(bot: Cloudjumper, message: str, sender: str):
             erred = False
+            if "dank" in message:
+                bot.send_action(bot.get_message("dank_joke").format(nick=sender))
+                return True
             if len(message.split(" ")) >= 3:
                 die = message.split(" ")[2].split("d")
                 if len(die) == 1:
@@ -333,17 +336,19 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.send_action(bot.get_message("diceerr").format(nick=sender))
                 else:
                     amount, maximum = int(amount), int(maximum)
-                    print(amount, maximum)
-                    if bot.config.get("roll_maximum", -1) > -1:
+                    if bot.config.get("roll_maximum", -1) > -1 and not bot.has_flag("admin", sender):
                         if maximum > bot.config.get("roll_maximum", -1) or maximum < 1:
                             bot.send_action(bot.get_message("nodice").format(nick=sender))
                             erred = True
-                    elif bot.config.get("dice_maximum", -1) > -1:
+                    if bot.config.get("dice_maximum", -1) > -1 and not bot.has_flag("admin", sender):
                         if amount > bot.config.get("dice_maximum", -1) or amount < 1:
                             bot.send_action(bot.get_message("nodice").format(nick=sender))
                             erred = True
                     if not erred:
-                        rolls = [str(random.randint(1, maximum)) for _ in range(amount)]
+                        if maximum > 1:
+                            rolls = [str(random.randint(1, maximum)) for _ in range(amount)]
+                        else:
+                            rolls = [("2" if random.randint(1, 100) in (1, 3, 5, 7, 8, 10, 67, 99, 7, 6) else "1") for _ in range(amount)]
                         if rolls:
                             bot.send_action(bot.get_message("roll").format(nick=sender, result=", ".join(rolls)))
                         else:
@@ -373,6 +378,14 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.quit(bot.get_message("disconnect"))
             else:
                 bot.send_action(bot.get_message("deny_command"), sender)
+
+        @self.cloudjumper_command("terminate")
+        def terminate_channel(bot: Cloudjumper, message: str, sender: str):
+            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
+                bot.log("[Terminating...]")
+                bot.quit(bot.get_message("disconnect"))
+            else:
+                bot.send_action(bot.get_message("deny_command"))
 
         @self.cloudjumper_command("list_commands", True, False)
         def list_commands(bot: Cloudjumper, message: str, sender: str):
