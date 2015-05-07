@@ -15,6 +15,11 @@
     "playfully waggles his tail at {nick}'s arrival",
     "welcomes {nick} with a cheerful warble"
   ],
+  "awesome_greetings": [
+    "high-fives {nick}!",
+    "fist-bumps {nick}!",
+    "climbs {nick}!"
+  ],
   "attacks": [
     "shoots a plasma bolt at {target}!",
     "hurls a pebble at {target}!",

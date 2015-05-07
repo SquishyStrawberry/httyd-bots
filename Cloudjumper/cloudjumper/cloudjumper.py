@@ -43,6 +43,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         "superadmin": "s",
         "whitelist": "w",
         "ignore": "i",
+        "fantastic": "f",
     }
     defaults = None
 
@@ -73,6 +74,9 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.add_flag("superadmin", "MysteriousMagenta")
         self.add_flag("superadmin", self.nick)
 
+        for user in self.config.get("awesome_people", []):
+            self.add_flag("fantastic", user)
+
         for setting in self.config.get("auto_admin", []):
             self.add_flag("superadmin", setting)
 
@@ -85,10 +89,10 @@ class Cloudjumper(irc_helper.IRCHelper):
         block_data = super().handle_block(block)
         if block_data.get("command", "").upper() == "JOIN":
             if not self.has_flag("ignore", block_data.get("sender")):
-                if block_data.get("sender").lower() not in map(lambda x: x.lower(), self.config.get("awesome_people", [])):
+                if not self.has_flag("fantastic", block_data.get("sender")):
                     greeting = random.choice(self.get_message("greetings")).format(nick=block_data.get("sender"))
                 else:
-                    greeting = self.get_message("awesome_person").format(nick=block_data.get("sender"))
+                    greeting = random.choice(self.get_message("awesome_greetings")).format(nick=block_data.get("sender"))
                 self.send_action(greeting)
 
         if block_data.get("sender") == "Toothless" and block_data.get("recipient") == self.nick:
