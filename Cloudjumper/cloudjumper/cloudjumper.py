@@ -114,8 +114,6 @@ class Cloudjumper(irc_helper.IRCHelper):
                 for message, sender in messages:
                     self.send_action(self.get_message("send_mail").format(message=message, sender=sender),
                                      block_data.get("sender"))
-            print(block_data.get("sender")
-            )
             self.irc_cursor.execute("DELETE FROM Whispers WHERE user=?", (block_data.get("sender").lower(),))
         return block_data
 
