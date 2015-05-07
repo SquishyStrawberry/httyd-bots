@@ -377,6 +377,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.quit(bot.get_message("disconnect"))
             else:
                 bot.send_action(bot.get_message("deny_command"), sender)
+            return True
 
         @self.cloudjumper_command("terminate")
         def terminate_channel(bot: Cloudjumper, message: str, sender: str):
@@ -385,6 +386,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.quit(bot.get_message("disconnect"))
             else:
                 bot.send_action(bot.get_message("deny_command"))
+            return True
 
         @self.cloudjumper_command("list_commands", True, False)
         def list_commands(bot: Cloudjumper, message: str, sender: str):
