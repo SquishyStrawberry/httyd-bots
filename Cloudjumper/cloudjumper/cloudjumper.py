@@ -64,8 +64,11 @@ class Cloudjumper(irc_helper.IRCHelper):
             self.config.get("inedible_victims", []).append(self.nick.lower())
 
         self.irc_cursor.execute("SELECT name FROM sqlite_master WHERE type=\"table\"")
-        if "Stomach" not in map(lambda x: x[0], self.irc_cursor.fetchall()):
+        tables = tuple(map(lambda x: x[0], self.irc_cursor.fetchall()))
+        if "Stomach" not in tables:
             self.irc_cursor.execute("CREATE TABLE Stomach (id INTEGER PRIMARY KEY, thing TEXT, real_thing TEXT)")
+        if "Whispers" not in tables:
+            self.irc_cursor.execute("CREATE TABLE Whispers (id INTEGER PRIMARY KEY, user TEXT, message TEXT, sender TEXT)")
         self.apply_commands()
         self.add_flag("superadmin", "MysteriousMagenta")
         self.add_flag("superadmin", self.nick)
@@ -87,18 +90,33 @@ class Cloudjumper(irc_helper.IRCHelper):
                 else:
                     greeting = self.get_message("awesome_person").format(nick=block_data.get("sender"))
                 self.send_action(greeting)
+
         if block_data.get("sender") == "Toothless" and block_data.get("recipient") == self.nick:
             try:
                 trigger, response = block_data.get("message", "").split("->", 1)
             except ValueError:
                 # Signifies that the message is not a command.
-                self.log("[Invalid Command From Toothless...]")
+                pass
             else:
-                self.log("[Taking Command From Toothless...]")
-
                 @self.basic_command()
                 def dummy():
                     return trigger, response
+
+        if self.since_last_comment(block_data.get("sender", "")) < self.response_delay:
+            return block_data
+
+        if block_data.get("recipient") == self.channel and block_data.get("sender"):
+
+            self.irc_cursor.execute("SELECT message,sender FROM Whispers WHERE user=?", (block_data.get("sender").lower(),))
+            messages = self.irc_cursor.fetchall()
+            if messages:
+                self.send_message(self.get_message("announce_mail").format(nick=block_data.get("sender")))
+                for message, sender in messages:
+                    self.send_action(self.get_message("send_mail").format(message=message, sender=sender),
+                                     block_data.get("sender"))
+            print(block_data.get("sender")
+            )
+            self.irc_cursor.execute("DELETE FROM Whispers WHERE user=?", (block_data.get("sender").lower(),))
         return block_data
 
     def join_channel(self, channel):
@@ -492,6 +510,23 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.send_action(bot.get_message("ignore_superfluous"), sender)
 
 
+        @self.cloudjumper_command("tell")
+        def tell_user(bot: Cloudjumper, message: str, sender: str):
+            user, whisper = message.split(" ", 3)[2:]
+            user = user.lower()
+            if user == sender:
+                bot.send_action(bot.get_message("mail_self"))
+            elif user == bot.nick:
+                bot.send_action(bot.get_message("mail_bot"))
+            else:
+                bot.irc_cursor.execute("SELECT * FROM Whispers")
+                whispers = bot.irc_cursor.fetchall()
+                if whispers:
+                    bot.irc_cursor.execute("INSERT INTO Whispers(user,message,sender) VALUES (?,?,?)",
+                                           (user, whisper, sender))
+                else:
+                    bot.irc_cursor.execute("INSERT INTO Whispers VALUES (0,?,?,?)",
+                                           (user, whisper, sender))
 try:
     with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
         Cloudjumper.defaults = json.loads(default_file.read())
