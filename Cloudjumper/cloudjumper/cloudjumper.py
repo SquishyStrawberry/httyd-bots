@@ -46,6 +46,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         "fantastic": "f",
     }
     defaults = None
+    config_name = "config.json"
 
     def __init__(self, config_file):
         needed = ("user", "nick", "channel",
@@ -529,6 +530,22 @@ class Cloudjumper(irc_helper.IRCHelper):
                 else:
                     bot.irc_cursor.execute("INSERT INTO Whispers VALUES (0,?,?,?)",
                                            (user, whisper, sender))
+
+    @classmethod
+    def run_bot(cls):
+        with open(cls.config_name) as config_file:
+            # noinspection PyCallingNonCallable
+            bot = cls(config_file)
+
+        try:
+            bot.run()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            if bot.started:
+                bot.quit(bot.get_message("disconnect"))
+
+
 try:
     with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
         Cloudjumper.defaults = json.loads(default_file.read())
