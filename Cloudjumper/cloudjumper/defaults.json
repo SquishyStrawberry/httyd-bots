@@ -48,6 +48,7 @@
   "nodice": "can't find a die of that size for {nick}...",
   "diceerr": "can't find such a die for {nick}...",
   "dank_joke": "rolls his eyes at {nick}",
+  "awesome_person": "fist-bumps {nick}!",
   "stomach_empty": "isn't digesting anyone...",
   "urltitle": "finds the url title to be: \"\u0002{title}\"",
   "vomit": "empties his stomach!",

@@ -82,11 +82,10 @@ class Cloudjumper(irc_helper.IRCHelper):
         block_data = super().handle_block(block)
         if block_data.get("command", "").upper() == "JOIN":
             if not self.has_flag("ignore", block_data.get("sender")):
-                greeting = random.choice(self.get_message("greetings"))
-                if "{nick}" in greeting:
-                    greeting = greeting.format(nick=block_data.get("sender"))
+                if block_data.get("sender").lower() not in map(lambda x: x.lower(), self.config.get("awesome_people", [])):
+                    greeting = random.choice(self.get_message("greetings")).format(nick=block_data.get("sender"))
                 else:
-                    greeting += block_data.get("sender", "")
+                    greeting = self.get_message("awesome_person").format(nick=block_data.get("sender"))
                 self.send_action(greeting)
         if block_data.get("sender") == "Toothless" and block_data.get("recipient") == self.nick:
             try:
@@ -465,7 +464,8 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.config = json.loads(bot.config_file.read())
                 bot.messages = bot.config.get("messages", {})
                 bot.send_action(bot.get_message("config_reloaded"), sender)
-
+                with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
+                    bot.__class__.defaults = json.loads(default_file.read())
             else:
                 bot.send_action(bot.get_message("deny_command"), sender)
             return True

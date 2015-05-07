@@ -12,6 +12,7 @@
   "dice_maximum": 20,
   "inedible_victims": ["Cloudjumper"],
   "auto_admin": ["MysteriousMagenta", "Tomako"],
+  "awesome_people": ["MysteriousMagenta", "Okisiroki", "Tomako", "Okisiroki-win"],
   "hosts": [],
   "database_name": "irc_database.db",
   "response_delay": 3
