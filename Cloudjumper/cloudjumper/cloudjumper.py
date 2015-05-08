@@ -9,18 +9,8 @@ from bs4 import BeautifulSoup
 
 try:
     import irc_helper
-except ImportError:
-    for i in range(1, 6):
-        parent_directory = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-i])
-        if parent_directory not in sys.path:
-            sys.path.insert(0, parent_directory)
-        try:
-            # noinspection PyUnresolvedReferences
-            import irc_helper
-        except ImportError:
-            del sys.path[0]
-        else:
-            break
+except:
+    raise ImportError("My other module 'irc_helper' is needed, please download it.")
 
 
 # From Django
