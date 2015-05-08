@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 try:
     import irc_helper
 except:
-    raise ImportError("My other module 'irc_helper' is needed, please download it.")
+    raise ImportError("My other module 'https://github.com/SquishyStrawberry/python-irc-helper/' is needed, please download it.")
 
 
 # From Django
