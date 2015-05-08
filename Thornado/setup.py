@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
-import setuptools
+import os.path
+from setuptools import setup, find_packages
 
-with open("requirements.txt") as req_file:
-    reqs = req_file.read().splitlines()
+if os.path.exists("requirements.txt"):
+    with open("requirements.txt") as req_file:
+        reqs = [i for i in req_file if i]
+else:
+    reqs = []
 
-packs = [
+packs = find_packages()
+if not packs:
+    raise Exception("Couldn't find any packages!")
 
-]
-scripts = [
-    "thornado/thornado.py"
-]
 
-setuptools.setup(
+setup(
     name="thornado",
-    version="1.0",
-    packages=packs,
-    scripts=scripts,
+    version=1.0,
+    description="Bot that monitors subreddits and posts the posts to IRC.",
+    author="SquishyStrawberry",
     install_requires=reqs,
-    description="Bot that can monitor subreddits and post them in IRC.",
+    packages=packs
 )

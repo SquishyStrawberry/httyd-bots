@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
-from thornado import Thornado
+try:
+
+    from thornado import Thornado
+
+except ImportError:
+    print("Couldn't Import THORNADO!")
+    exit(0)
 
 config_name = "config.json"
 with open(config_name) as config_file:
