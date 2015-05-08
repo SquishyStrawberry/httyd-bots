@@ -1,5 +1,5 @@
 {
-  "channel": "#bot-test",
+  "channel": "#httyd",
   "user": "JumperOfClouds",
   "nick": "Cloudjumper",
   "password": "",
@@ -7,7 +7,8 @@
   "check_login": true,
   "fail_after": 10,
   "host": "irc.editingarchive.com",
-  "port": 6667,
+  "port": 6697,
+  "use_ssl": true,
   "roll_maximum": 1024,
   "dice_maximum": 20,
   "inedible_victims": ["Cloudjumper"],

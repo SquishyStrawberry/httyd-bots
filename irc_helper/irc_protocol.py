@@ -4,8 +4,10 @@ Small file that handles IRC Handling.
 Currently doesn't comply with RFC section 2.3.1, but it'll get there.
 I just have to find out the freaking format :/
 """
+import ssl
 import socket
 import time
+
 
 
 class IRCError(Exception):
@@ -13,7 +15,7 @@ class IRCError(Exception):
 
 
 class IRCBot(object):
-    def __init__(self, user, nick, channel, host, port=6667, check_login=True, fail_after=10):
+    def __init__(self, user, nick, channel, host, port=6667, check_login=True, fail_after=10, use_ssl=True):
         self.connection_data = (host, port)
         self.user = user
         self.nick = nick
@@ -26,6 +28,8 @@ class IRCBot(object):
         self.fail_time = None
         self.fail_after = fail_after
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if use_ssl:
+            self.socket = ssl.wrap_socket(self.socket)
         self.socket.connect(self.connection_data)
         self.start_up()
 

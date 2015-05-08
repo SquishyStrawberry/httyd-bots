@@ -51,7 +51,8 @@ class Cloudjumper(irc_helper.IRCHelper):
     def __init__(self, config_file):
         needed = ("user", "nick", "channel",
                   "host", "port", "database_name",
-                  "response_delay", "fail_after", "check_login")
+                  "response_delay", "fail_after", "check_login",
+                  "use_ssl")
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
         self.messages = self.config.get("messages", {})
