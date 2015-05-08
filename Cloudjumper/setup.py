@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import os.path
-from setuptools import setup, find_packages
+import os
+import setuptools
+
 
 if os.path.exists("requirements.txt"):
     with open("requirements.txt") as req_file:
@@ -8,16 +9,18 @@ if os.path.exists("requirements.txt"):
 else:
     reqs = []
 
-packs = find_packages()
-if not packs:
-    raise Exception("Couldn't find any packages!")
+packs = setuptools.find_packages()
 
 
-setup(
-    name="cloudjumper",
-    version=1.0,
-    description="A bot that can learn, attack, eat, etc... in IRC!",
-    author="SquishyStrawberry",
-    install_requires=reqs,
-    packages=packs
-)
+def setup():
+    setuptools.setup(
+        name="cloudjumper",
+        version=1.0,
+        description="A bot that can learn, attack, eat, etc... in IRC!",
+        author="SquishyStrawberry",
+        install_requires=reqs,
+        packages=packs
+    )
+
+if __name__ == '__main__':
+    setup()
