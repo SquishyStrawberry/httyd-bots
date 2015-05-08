@@ -15,7 +15,7 @@ class IRCError(Exception):
 
 
 class IRCBot(object):
-    def __init__(self, user, nick, channel, host, port=6667, check_login=True, fail_after=10, use_ssl=True):
+    def __init__(self, user, nick, channel, host, port=6667, check_login=True, fail_after=10, use_ssl=False):
         self.connection_data = (host, port)
         self.user = user
         self.nick = nick

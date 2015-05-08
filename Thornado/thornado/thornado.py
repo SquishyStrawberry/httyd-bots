@@ -32,7 +32,7 @@ ONE_DAY = 1*60*60*24
 
 class Thornado(irc_helper.IRCBot):
     def __init__(self, config_file, auto_start=True):
-        needed = ("user", "nick", "channel", "host", "port")
+        needed = ("user", "nick", "channel", "host", "port", "use_ssl")
         self.config = json.loads(config_file.read())
         self.messages = self.config.get("messages", {})
         try:
