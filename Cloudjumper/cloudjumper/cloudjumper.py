@@ -527,6 +527,9 @@ class Cloudjumper(irc_helper.IRCHelper):
 
     @classmethod
     def run_bot(cls):
+        if not os.path.exists(cls.config_name):
+            raise CloudjumperError("No such config file '{}'!".format(cls.config_name)
+
         with open(cls.config_name) as config_file:
             # noinspection PyCallingNonCallable
             bot = cls(config_file)
