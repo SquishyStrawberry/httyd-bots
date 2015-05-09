@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os
 import random
-import sys
 import re
 import requests
 import json
@@ -359,7 +358,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                         if maximum > 1:
                             rolls = [str(random.randint(1, maximum)) for _ in range(amount)]
                         else:
-                            rolls = [("2" if random.randint(1, 100) in (1, 3, 5, 7, 8, 10, 67, 99, 7, 6) else "1") for _ in range(amount)]
+                            rolls = [("2" if random.randint(1, 100) in random.sample(range(1, 101), 10) else "1") for _ in range(amount)]
                         if rolls:
                             bot.send_action(bot.get_message("roll").format(nick=sender, result=", ".join(rolls)))
                         else:
@@ -478,8 +477,12 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.config = json.loads(bot.config_file.read())
                 bot.messages = bot.config.get("messages", {})
                 bot.send_action(bot.get_message("config_reloaded"), sender)
-                with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
-                    bot.__class__.defaults = json.loads(default_file.read())
+                try:
+                    with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
+                        bot.__class__.defaults = json.loads(default_file.read())
+                except NameError:
+                    # If this gets compiled with cx_freeze, we won't have __file__
+                    bot.send_action(bot.get_message("fail_defaults"), sender)
             else:
                 bot.send_action(bot.get_message("deny_command"), sender)
             return True

@@ -29,6 +29,7 @@
     "unsheathes his teeth and bites {target}!"
   ],
   "deny": "won't follow {nick}'s instructions!",
+  "fail_defaults": "wasn't able to reload its defaults!",
   "disconnect": "Gotta go save Hiccup from yet another gliding accident...",
   "switch_channel": "Gotta go to fly with Hiccup...",
   "eat": "gulps down {victim}!",

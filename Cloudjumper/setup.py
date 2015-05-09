@@ -19,8 +19,11 @@ def setup():
         description="A bot that can learn, attack, eat, etc... in IRC!",
         author="SquishyStrawberry",
         install_requires=reqs,
-        packages=packs
+        packages=packs,
+        package_data = {
+            "cloudjumper": ["defaults.json"]
+        }
     )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     setup()

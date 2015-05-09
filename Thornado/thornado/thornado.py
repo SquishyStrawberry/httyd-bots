@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 import json
 import praw
 import time
@@ -9,7 +7,7 @@ import threading
 
 try:
     praw.helpers
-except NameError:
+except (NameError, AttributeError):
     import praw.helpers
 
 try:
@@ -42,7 +40,10 @@ class Thornado(irc_helper.IRCBot):
             self.start()
 
     def search_subreddit(self):
-        # noinspection PyUnresolvedReferences
+        """
+        Not intended for use outside of the internal thread.
+        Searches self.subreddit for new posts, and posts them to self.channel
+        """
         for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 100, 0):
             post_time = time.time() - post.created
             if post and post.id not in self.posts and post.author and post_time < self.config.get("post_time", ONE_DAY):
