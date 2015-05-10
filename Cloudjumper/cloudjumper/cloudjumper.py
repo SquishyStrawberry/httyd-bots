@@ -20,6 +20,8 @@ url_validator = re.compile(
     r"(?::\d+)?"  # optional port
     r"(?:/?|[/?]\S+)$", re.IGNORECASE)
 
+subreddit = re.compile("/r/(\S+)", re.IGNORECASE)
+
 
 class CloudjumperError(irc_helper.IRCError):
     pass
@@ -524,6 +526,13 @@ class Cloudjumper(irc_helper.IRCHelper):
                 else:
                     bot.irc_cursor.execute("INSERT INTO Whispers VALUES (0,?,?,?)",
                                            (user, whisper, sender))
+
+        @self.advanced_command()
+        def link_subreddit(bot: Cloudjumper, message: str, sender: str):
+            subreddit_name = subreddit.search(message)
+            if subreddit_name:
+                bot.send_action(bot.get_message("link_subreddit").format
+                                (link="https://www.reddit.com/r/" + subreddit_name.group(1)))
 
     @classmethod
     def run_bot(cls):
