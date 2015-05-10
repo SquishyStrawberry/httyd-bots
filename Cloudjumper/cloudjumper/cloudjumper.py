@@ -529,18 +529,18 @@ class Cloudjumper(irc_helper.IRCHelper):
     def run_bot(cls):
         if not os.path.exists(cls.config_name):
             raise CloudjumperError("No such config file '{}'!".format(cls.config_name)
+        else:
+            with open(cls.config_name) as config_file:
+                # noinspection PyCallingNonCallable
+                bot = cls(config_file)
 
-        with open(cls.config_name) as config_file:
-            # noinspection PyCallingNonCallable
-            bot = cls(config_file)
-
-        try:
-            bot.run()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            if bot.started:
-                bot.quit(bot.get_message("disconnect"))
+            try:
+                bot.run()
+            except KeyboardInterrupt:
+                pass
+            finally:
+                if bot.started:
+                    bot.quit(bot.get_message("disconnect"))
 
 
 try:
@@ -548,3 +548,7 @@ try:
         Cloudjumper.defaults = json.loads(default_file.read())
 except FileNotFoundError as e:
     raise CloudjumperError("No defaults file was found!") from e
+
+if __name__ == "__main__":
+    print("You are trying to run cloudjumper.py to run the bot, "
+          "but instead you need to run -m cloudjumper.")

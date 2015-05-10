@@ -10,3 +10,9 @@ __pycache__/
 posts.json
 
 backup.json
+
+build
+
+dist
+
+*.egg-info
