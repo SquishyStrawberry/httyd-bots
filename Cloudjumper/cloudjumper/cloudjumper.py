@@ -78,8 +78,8 @@ class Cloudjumper(irc_helper.IRCHelper):
             self.add_flag("admin", user)
             self.add_flag("whitelist", user)
 
-    def handle_block(self, block):
-        block_data = super().handle_block(block)
+    def extra_handling(self, block_data):
+        block_data = super().extra_handling(block_data)
         if block_data.get("command", "").upper() == "JOIN":
             if not self.has_flag("ignore", block_data.get("sender")):
                 if not self.has_flag("fantastic", block_data.get("sender")):
