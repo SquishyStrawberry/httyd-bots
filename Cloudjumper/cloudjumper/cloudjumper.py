@@ -46,7 +46,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
         self.messages = self.config.get("messages", {})
-        self.set_debug()
+        self.set_level()
         real_config = {k: v for k, v in self.config.items() if k in super_args}
         keys = tuple(real_config.keys())
         for setting in super_args:
@@ -541,9 +541,12 @@ class Cloudjumper(irc_helper.IRCHelper):
                                 (link="https://www.reddit.com/r/" + subreddit_name.group(1)))
 
 
-    def set_debug(self):
+    def set_level(self):
+
         if self.config.get("debug"):
-            super().set_debug()
+            super().set_level(logging.DEBUG)
+        else:
+            super().set_level(logging.INFO)
 
     @classmethod
     def run_bot(cls):
