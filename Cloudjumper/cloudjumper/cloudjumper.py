@@ -542,13 +542,10 @@ class Cloudjumper(irc_helper.IRCHelper):
 
 
     def set_level(self, lvl=None):
-        if lvl is not None:
-            super().set_level(lvl)
+        if self.config.get("debug"):
+            super().set_level(logging.DEBUG)
         else:
-            if self.config.get("debug"):
-                super().set_level(logging.DEBUG)
-            else:
-                super().set_level(logging.INFO)
+            super().set_level(logging.INFO)
 
     @classmethod
     def run_bot(cls):
