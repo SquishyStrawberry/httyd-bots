@@ -1,3 +1,3 @@
 beautifulsoup4
 requests
-irc_helper==1.26
+irc_helper

@@ -1,4 +1,4 @@
 beautifulsoup4
 requests
 praw
-irc_helper==1.26
+irc_helper

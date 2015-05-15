@@ -9,6 +9,8 @@ else
     exit 1
 fi
 
+# Just so we can always upgrade.
+pip3 uninstall irc_helper -y
 if [[ -e ${projectRoot}/requirements.txt ]]; then
     echo "Found global requirements.txt in ${projectRoot}"
     pip3 install -r requirements.txt --upgrade
