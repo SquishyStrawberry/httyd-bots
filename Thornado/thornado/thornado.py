@@ -10,10 +10,7 @@ try:
 except (NameError, AttributeError):
     import praw.helpers
 
-try:
-    import irc_helper
-except:
-    raise ImportError("My other module 'https://github.com/SquishyStrawberry/python-irc-helper/' is needed, please download it.")
+import irc_helper
 
 ONE_DAY = 1*60*60*24
 
