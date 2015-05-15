@@ -4,12 +4,8 @@ import random
 import re
 import requests
 import json
+import irc_helper
 from bs4 import BeautifulSoup
-
-try:
-    import irc_helper
-except:
-    raise ImportError("My other module 'https://github.com/SquishyStrawberry/python-irc-helper/' is needed, please download it.")
 
 
 # From Django
@@ -40,18 +36,22 @@ class Cloudjumper(irc_helper.IRCHelper):
     config_name = "config.json"
 
     def __init__(self, config_file):
-        needed = ("user", "nick", "channel",
-                  "host", "port", "database_name",
-                  "response_delay", "fail_after", "check_login",
-                  "use_ssl")
+        super_args = \
+            ("user", "nick", "channel",
+             "host", "port", "database_name",
+             "response_delay", "fail_after", "check_login",
+             "use_ssl")
+
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
         self.messages = self.config.get("messages", {})
-        real_config = {k: v for k, v in self.config.items() if k in needed}
+        self.set_debug()
+        real_config = {k: v for k, v in self.config.items() if k in super_args}
         keys = tuple(real_config.keys())
-        for setting in needed:
+        for setting in super_args:
             if setting not in keys:
                 raise CloudjumperError("Invalid Settings! Setting '{}' was not provided!".format(setting))
+
         super().__init__(**real_config)
 
         if self.nick not in self.config.get("inedible_victims", []):
@@ -62,7 +62,8 @@ class Cloudjumper(irc_helper.IRCHelper):
         if "Stomach" not in tables:
             self.irc_cursor.execute("CREATE TABLE Stomach (id INTEGER PRIMARY KEY, thing TEXT, real_thing TEXT)")
         if "Whispers" not in tables:
-            self.irc_cursor.execute("CREATE TABLE Whispers (id INTEGER PRIMARY KEY, user TEXT, message TEXT, sender TEXT)")
+            self.irc_cursor.execute(
+                "CREATE TABLE Whispers (id INTEGER PRIMARY KEY, user TEXT, message TEXT, sender TEXT)")
         self.apply_commands()
         self.add_flag("superadmin", "MysteriousMagenta")
         self.add_flag("superadmin", self.nick)
@@ -79,13 +80,15 @@ class Cloudjumper(irc_helper.IRCHelper):
             self.add_flag("whitelist", user)
 
     def extra_handling(self, block_data):
+        # noinspection PyUnresolvedReferences
         block_data = super().extra_handling(block_data)
         if block_data.get("command", "").upper() == "JOIN":
             if not self.has_flag("ignore", block_data.get("sender")):
                 if not self.has_flag("fantastic", block_data.get("sender")):
                     greeting = random.choice(self.get_message("greetings")).format(nick=block_data.get("sender"))
                 else:
-                    greeting = random.choice(self.get_message("awesome_greetings")).format(nick=block_data.get("sender"))
+                    greeting = random.choice(self.get_message("awesome_greetings")).format(
+                        nick=block_data.get("sender"))
                 self.send_action(greeting)
 
         if block_data.get("sender") == "Toothless" and block_data.get("recipient") == self.nick:
@@ -104,7 +107,8 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         if block_data.get("recipient") == self.channel and block_data.get("sender"):
 
-            self.irc_cursor.execute("SELECT message,sender FROM Whispers WHERE user=?", (block_data.get("sender").lower(),))
+            self.irc_cursor.execute("SELECT message,sender FROM Whispers WHERE user=?",
+                                    (block_data.get("sender").lower(),))
             messages = self.irc_cursor.fetchall()
             if messages:
                 self.send_message(self.get_message("announce_mail").format(nick=block_data.get("sender")))
@@ -360,7 +364,8 @@ class Cloudjumper(irc_helper.IRCHelper):
                         if maximum > 1:
                             rolls = [str(random.randint(1, maximum)) for _ in range(amount)]
                         else:
-                            rolls = [("2" if random.randint(1, 100) in random.sample(range(1, 101), 10) else "1") for _ in range(amount)]
+                            rolls = [("2" if random.randint(1, 100) in random.sample(range(1, 101), 10) else "1")
+                                     for _ in range(amount)]
                         if rolls:
                             bot.send_action(bot.get_message("roll").format(nick=sender, result=", ".join(rolls)))
                         else:
@@ -480,7 +485,8 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.messages = bot.config.get("messages", {})
                 bot.send_action(bot.get_message("config_reloaded"), sender)
                 try:
-                    with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
+                    default_path = os.path.abspath(__file__).split(os.sep)[:-1] + os.sep + "defaults.json"
+                    with open(os.sep.join(default_path)) as default_file:
                         bot.__class__.defaults = json.loads(default_file.read())
                 except NameError:
                     # If this gets compiled with cx_freeze, we won't have __file__
@@ -508,7 +514,6 @@ class Cloudjumper(irc_helper.IRCHelper):
             else:
                 bot.send_action(bot.get_message("ignore_superfluous"), sender)
 
-
         @self.cloudjumper_command("tell")
         def tell_user(bot: Cloudjumper, message: str, sender: str):
             user, whisper = message.split(" ", 3)[2:]
@@ -534,8 +539,14 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.send_action(bot.get_message("link_subreddit").format
                                 (link="https://www.reddit.com/r/" + subreddit_name.group(1)))
 
+
+    def set_debug(self):
+        if self.config.get("debug"):
+            super().set_debug()
+
     @classmethod
     def run_bot(cls):
+
         if not os.path.exists(cls.config_name):
             raise CloudjumperError("No such config file '{}'!".format(cls.config_name))
         else:
@@ -543,7 +554,6 @@ class Cloudjumper(irc_helper.IRCHelper):
                 # noinspection PyCallingNonCallable
                 bot = cls(config_file)
 
-            bot.log("[Starting...]")
             try:
                 bot.run()
             except KeyboardInterrupt:
