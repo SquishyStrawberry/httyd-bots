@@ -11,7 +11,7 @@ fi
 
 if [[ -e ${projectRoot}/requirements.txt ]]; then
     echo "Found global requirements.txt in ${projectRoot}"
-    pip3 install -r requirements.txt
+    pip3 install -r requirements.txt --upgrade
 else
     echo "No global requirements.txt in ${projectRoot}"
 fi

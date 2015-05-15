@@ -1,2 +1,2 @@
 praw
-irc_helper
+irc_helper==1.25
