@@ -1,8 +1,10 @@
 {
   "nick": "Thornado",
   "user": "ThornadoAnnouncer",
-  "channel": "#bot-test",
+  "channel": "#httyd",
   "host": "irc.editingarchive.com",
+  "password": "",
+  "email": "",
   "port": 6697,
   "use_ssl": true,
   "subreddit": "httyd",
@@ -11,6 +13,7 @@
   "post_time": 86400,
   "between_posts": 1,
   "messages": {
+    "join": "flies in.",
     "found_post": "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}",
     "disconnect": "Gotta go feed my little Thornados."
   }

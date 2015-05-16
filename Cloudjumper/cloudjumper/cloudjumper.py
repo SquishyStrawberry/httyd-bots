@@ -35,6 +35,8 @@ class Cloudjumper(irc_helper.IRCHelper):
     }
     defaults = None
     config_name = "config.json"
+    # Hard coded on purpose.
+    excluded_nicknames = ("skullcrusher", "thornado")
 
     def __init__(self, config_file):
         super_args = \
@@ -82,6 +84,8 @@ class Cloudjumper(irc_helper.IRCHelper):
 
     def extra_handling(self, block_data):
         # noinspection PyUnresolvedReferences
+        if block_data.get("sender").lower() in Cloudjumper.excluded_nicknames:
+            return block_data
         block_data = super().extra_handling(block_data)
         if block_data.get("command", "").upper() == "JOIN":
             if not self.has_flag("ignore", block_data.get("sender")):
@@ -221,10 +225,15 @@ class Cloudjumper(irc_helper.IRCHelper):
             req = requests.get(message.strip(), headers={"User-Agent": "Py3 TitleFinder"})
             if req.ok:
                 soup = BeautifulSoup(req.text)
-                bot.send_action(self.get_message("urltitle").format(title=soup.title.text))
+                title = soup.title
+                if title is not None:
+
+                    bot.send_action(self.get_message("urltitle").format(title=title.text))
+                else:
+                    bot.send_action(self.get_message("urltitle_fail"))
                 # TODO Implement proper Youtube API
             else:
-                bot.send_action("wasn't able to get URL info! [{}]".format(sender, req.status_code))
+                bot.send_action(self.get_message("urltitle_fail"))
             return True
 
         @self.cloudjumper_command("learn")
