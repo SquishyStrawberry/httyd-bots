@@ -18,5 +18,5 @@
   "hosts": [],
   "database_name": "irc_database.db",
   "response_delay": 3,
-  "blokes_url": "http://joel.pm/blokes",
+  "blokes_url": "http://joel.pm/blokes"
 }
