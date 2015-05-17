@@ -596,6 +596,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.quit(bot.get_message("disconnect"))
 
 
+
 try:
     with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
         Cloudjumper.defaults = json.loads(default_file.read())
