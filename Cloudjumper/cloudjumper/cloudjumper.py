@@ -11,11 +11,11 @@ from bs4 import BeautifulSoup
 
 # From Django
 url_validator = re.compile(
-    r"^(?:(?:http|ftp)s?://)"  # http:// or https://
+    r"(^(?:(?:http|ftp)s?://)"  # http:// or https://
     r"((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
     r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
     r"(?::\d+)?"  # optional port
-    r"(?:/?|[/?]\S+)$", re.IGNORECASE)
+    r"(?:/.+)?)", re.IGNORECASE)
 
 subreddit = re.compile("/r/(\S+)", re.IGNORECASE)
 cloudjumper_logger = logging.getLogger(__name__)
@@ -193,13 +193,12 @@ class Cloudjumper(irc_helper.IRCHelper):
                 self.add_host(host)
 
     def is_command(self, command, message, need_nick=True):
-        command_string_one = (self.nick.lower() + " " + command).lower()
-        command_string_two = (self.nick.lower() + "! " + command).lower()
-        message_command = " ".join(message.lower().split(" ")[:len(command.split(" ")) + (1 if need_nick else 0)])
-        if need_nick:
-            return message_command in (command_string_one, command_string_two)
-        else:
-            return message_command == command
+        # Regex <3
+        return bool(re.match("{}{}{}".format(self.nick if need_nick else "",
+                                             "!?\s" if need_nick else "",
+                                             command),
+                             message,
+                             re.IGNORECASE))
 
     def cloudjumper_command(self, command, private_message=False, need_nick=True):
         def inner(func):
@@ -224,27 +223,31 @@ class Cloudjumper(irc_helper.IRCHelper):
             url_match = url_validator.search(message.strip())
             if not url_match:
                 return
-            req = requests.get(message.strip(), headers={"User-Agent": "Py3 TitleFinder"})
+            url = url_match.group(1)
+            req = requests.get(url, headers={"User-Agent": "Py3 TitleFinder"})
             if req.ok:
                 soup = BeautifulSoup(req.text)
                 title = soup.title
                 if title is not None:
-
+                    cloudjumper_logger.debug("[Opened URL '{}' With Title '{}']".format(url, title.text))
                     bot.send_action(self.get_message("urltitle").format(title=title.text))
                 else:
                     bot.send_action(self.get_message("urltitle_fail"))
                 # TODO Implement proper Youtube API
             else:
+                cloudjumper_logger.debug("[Failed To Get Title Of URL '{}']".format(url))
                 bot.send_action(self.get_message("urltitle_fail"))
             return True
 
         @self.cloudjumper_command("learn")
         def learn_trigger(bot: Cloudjumper, message: str, sender: str):
-            if len(message.split("->", 1)) >= 2:
+            args = [i for i in message.split("->", 1) if i]
+            if len(args) >= 2:
                 if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin",
                                                                                                       sender):
                     trigger, response = message.split(" ", 2)[2].split("->", 1)
                     trigger, response = trigger.strip(), response.strip()
+                    cloudjumper_logger.debug("[Learnt {} -> {}]".format(trigger, response))
                     bot.irc_cursor.execute("SELECT * FROM Commands WHERE trigger=? AND response=?",
                                            (trigger, response))
                     if not bot.irc_cursor.fetchone():
@@ -269,7 +272,8 @@ class Cloudjumper(irc_helper.IRCHelper):
             if len(message.split(" ")) >= 3:
                 if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin",
                                                                                                       sender):
-                    trigger = message.split(" ", 2)[2]
+                    trigger = message.split(" ", 2)[2].strip()
+                    cloudjumper_logger.debug("[Forgot {}]".format(trigger))
                     bot.irc_cursor.execute("SELECT response FROM Commands WHERE trigger=?", (trigger,))
                     response = (bot.irc_cursor.fetchone() or [None])[0]
                     if response is not None:
@@ -552,7 +556,9 @@ class Cloudjumper(irc_helper.IRCHelper):
         def link_subreddit(bot: Cloudjumper, message: str, sender: str):
             subreddit_name = subreddit.search(message)
             if subreddit_name:
-                link = "https://www.reddit.com/r/" + subreddit_name.group(1)
+                short_link = "/r/" + subreddit_name.group(1)
+                link = "https://www.reddit.com" + short_link
+                cloudjumper_logger.debug("[Linked Subreddit '{}']".format(short_link))
                 bot.send_action(bot.get_message("link_subreddit").format(link=link))
 
 
