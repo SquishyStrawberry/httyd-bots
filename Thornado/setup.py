@@ -16,7 +16,7 @@ if not packs:
 def setup():
     setuptools.setup(
         name="thornado",
-        version=1.0,
+        version=1.1,
         description="Bot that monitors subreddits and posts the posts to IRC.",
         author="SquishyStrawberry",
         install_requires=reqs,
