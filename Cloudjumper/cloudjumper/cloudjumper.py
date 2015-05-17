@@ -552,7 +552,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.irc_cursor.execute("INSERT INTO Whispers VALUES (0,?,?,?)",
                                            (user, whisper, sender))
 
-        @self.advanced_command()
+        @self.advanced_command(False)
         def link_subreddit(bot: Cloudjumper, message: str, sender: str):
             subreddit_name = subreddit.search(message)
             if subreddit_name:
@@ -561,6 +561,13 @@ class Cloudjumper(irc_helper.IRCHelper):
                 cloudjumper_logger.debug("[Linked Subreddit '{}']".format(short_link))
                 bot.send_action(bot.get_message("link_subreddit").format(link=link))
 
+
+        @self.cloudjumper_command("blokes")
+        def bloke_board(bot: Cloudjumper, message:str, sender:str):
+            if bot.config.get("blokes_url"):
+                bot.send_action(bot.get_message("blokes_board").format(bot.config.get("blokes_url")))
+            else:
+                bot.send_action(bot.get_message("blokes_board_fail"))
 
     def set_level(self, lvl=None):
         if self.config.get("debug"):

@@ -29,6 +29,8 @@
     "unsheathes his teeth and bites {target}!"
   ],
   "deny": "won't follow {nick}'s instructions!",
+  "blokes_board": "knows the url is '{}'!",
+  "blokes_board_fail": "doesn't know the url!",
   "fail_defaults": "wasn't able to reload its defaults!",
   "link_subreddit": "says that the full link to the subreddit is '{link}'",
   "disconnect": "Gotta go save Hiccup from yet another gliding accident...",

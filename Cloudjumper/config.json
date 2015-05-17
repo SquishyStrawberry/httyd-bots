@@ -1,5 +1,5 @@
 {
-  "channel": "#bot-test",
+  "channel": "#httyd",
   "user": "JumperOfClouds",
   "nick": "Cloudjumper",
   "password": "",
@@ -8,7 +8,7 @@
   "fail_after": 10,
   "host": "irc.editingarchive.com",
   "port": 6667,
-  "debug": true,
+  "debug": false,
   "use_ssl": false,
   "roll_maximum": 1024,
   "dice_maximum": 20,
@@ -17,5 +17,6 @@
   "awesome_people": ["MysteriousMagenta", "Okisiroki", "Tomako", "Okisiroki-win"],
   "hosts": [],
   "database_name": "irc_database.db",
-  "response_delay": 3
+  "response_delay": 3,
+  "blokes_url": "http://joel.pm/blokes",
 }
