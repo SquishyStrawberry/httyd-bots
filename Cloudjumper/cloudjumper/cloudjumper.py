@@ -84,7 +84,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
     def extra_handling(self, block_data):
         # noinspection PyUnresolvedReferences
-        if block_data.get("sender").lower() in Cloudjumper.excluded_nicknames:
+        if block_data.get("sender", "").lower() in Cloudjumper.excluded_nicknames:
             return block_data
         block_data = super().extra_handling(block_data)
         if block_data.get("command", "").upper() == "JOIN":
