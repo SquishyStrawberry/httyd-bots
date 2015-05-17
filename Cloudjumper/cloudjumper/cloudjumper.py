@@ -18,6 +18,7 @@ url_validator = re.compile(
     r"(?:/?|[/?]\S+)$", re.IGNORECASE)
 
 subreddit = re.compile("/r/(\S+)", re.IGNORECASE)
+cloudjumper_logger = logging.getLogger(__name__)
 
 
 class CloudjumperError(irc_helper.IRCError):
@@ -81,6 +82,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         for (user,) in self.irc_cursor.fetchall():
             self.add_flag("admin", user)
             self.add_flag("whitelist", user)
+
 
     def extra_handling(self, block_data):
         # noinspection PyUnresolvedReferences
@@ -178,13 +180,13 @@ class Cloudjumper(irc_helper.IRCHelper):
         return flag in flags
 
     def get_message(self, message_key):
-        return self.messages.get(message_key, Cloudjumper.defaults.get(message_key, ""))
+        return self.messages.get(message_key, Cloudjumper.defaults.get(message_key, "couldn't find a valid message"))
 
     def start_up(self):
         super().start_up()
         if self.config.get("password"):
             if self.config.get("email"):
-                self.log("[Need to confirm via Email \"{}\"!]".format(self.config.get("email")))
+                cloudjumper_logger.info("[Need To Confirm Via Email \"{}\"!]".format(self.config.get("email")))
             self.register(self.config.get("password"), self.config.get("email"), True)
         if self.logged_in:
             for host in self.config.get("hosts", []):
@@ -519,20 +521,24 @@ class Cloudjumper(irc_helper.IRCHelper):
         @self.cloudjumper_command("ignore_me", True, False)
         def ignore_me(bot: Cloudjumper, message: str, sender: str):
             if not bot.has_flag("ignore", sender):
+                cloudjumper_logger.debug("[Started Ignoring '{}']".format(sender))
                 bot.add_flag("ignore", sender)
                 bot.send_action(bot.get_message("ignore"), sender)
             else:
+                cloudjumper_logger.debug("['{}' Asked To Be Ignored, But Was Already Being Ignored.]".format(sender))
                 bot.send_action(bot.get_message("ignore_superfluous"), sender)
 
         @self.cloudjumper_command("tell")
         def tell_user(bot: Cloudjumper, message: str, sender: str):
             user, whisper = message.split(" ", 3)[2:]
             user = user.lower()
-            if user == sender:
+            cloudjumper_logger.debug("[Registered Message '{}' From '{}' To '{}']".format(whisper, sender, user))
+            if user == sender.lower():
                 bot.send_action(bot.get_message("mail_self"))
-            elif user == bot.nick:
+            elif user == bot.nick.lower():
                 bot.send_action(bot.get_message("mail_bot"))
             else:
+                bot.send_action(bot.get_message("mail_okay"))
                 bot.irc_cursor.execute("SELECT * FROM Whispers")
                 whispers = bot.irc_cursor.fetchall()
                 if whispers:
@@ -546,15 +552,17 @@ class Cloudjumper(irc_helper.IRCHelper):
         def link_subreddit(bot: Cloudjumper, message: str, sender: str):
             subreddit_name = subreddit.search(message)
             if subreddit_name:
-                bot.send_action(bot.get_message("link_subreddit").format
-                                (link="https://www.reddit.com/r/" + subreddit_name.group(1)))
+                link = "https://www.reddit.com/r/" + subreddit_name.group(1)
+                bot.send_action(bot.get_message("link_subreddit").format(link=link))
 
 
     def set_level(self, lvl=None):
         if self.config.get("debug"):
             super().set_level(logging.DEBUG)
+            logging.getLogger(__name__).setLevel(logging.DEBUG)
         else:
             super().set_level(logging.INFO)
+            logging.getLogger(__name__).setLevel(logging.INFO)
 
     @classmethod
     def run_bot(cls):

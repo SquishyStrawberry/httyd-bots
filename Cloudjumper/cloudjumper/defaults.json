@@ -60,6 +60,7 @@
   "send_mail": "was told to tell you \"{message}\" by {sender}",
   "mail_self": "thinks you can talk to yourself.",
   "mail_bot": "is right here, and can listen to you.",
+  "mail_okay": "will deliver that message!",
   "announce_mail": "has things to tell {nick}!",
   "stomach_empty": "isn't digesting anyone...",
   "urltitle": "finds the url title to be: \"\u0002{title}\"",
