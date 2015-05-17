@@ -153,7 +153,7 @@ class Cloudjumper(irc_helper.IRCHelper):
             raise CloudjumperError("Unknown flag! Valid flags are {}".format(", ".join(Cloudjumper.flags.values())))
         old_flags = self.get_flags(username)
         new_flags = "".join(old_flags).replace(flag, "")
-        if new_flags != "":
+        if new_flags:
             self.irc_cursor.execute("UPDATE Flags SET flags=? WHERE username=?", (new_flags, username))
         else:
             self.irc_cursor.execute("DELETE FROM Flags WHERE username=?", (username,))
@@ -178,7 +178,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         return flag in flags
 
     def get_message(self, message_key):
-        return self.messages.get(message_key, Cloudjumper.defaults.get(message_key))
+        return self.messages.get(message_key, Cloudjumper.defaults.get(message_key, ""))
 
     def start_up(self):
         super().start_up()

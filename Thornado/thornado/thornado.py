@@ -52,7 +52,6 @@ class Thornado(irc_helper.IRCBot):
         for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 100, 0):
             post_time = time.time() - post.created
             if post and post.id not in self.posts and post.author and post_time < self.config.get("post_time", ONE_DAY):
-                thornado_logger.debug("[Found A Post]")
                 default = "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
                 message = self.messages.get("found_post", default)
                 message = message.format(subreddit=self.subreddit,
@@ -60,12 +59,14 @@ class Thornado(irc_helper.IRCBot):
                                          submitter=post.author.name,
                                          link="http://redd.it/" + post.id,
                                          post=post)
+                thornado_logger.debug("[Found A Post '{}']".format(post.id))
                 self.send_action(message)
                 self.posts.add(post.id)
                 time.sleep(self.config.get("between_posts", 1))
 
     def quit(self, message):
         super().quit(message)
+        thornado_logger.debug("[Quitting with list of posts {}]".format(self.posts))
         with open(self.config.get("post_file"), "w") as visited_file:
             visited_file.write(json.dumps(list(self.posts)))
 
