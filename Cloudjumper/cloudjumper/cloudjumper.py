@@ -622,7 +622,3 @@ try:
         Cloudjumper.defaults = json.loads(default_file.read())
 except FileNotFoundError as e:
     raise CloudjumperError("No defaults file was found!") from e
-
-if __name__ == "__main__":
-    print("You are trying to run cloudjumper.py to run the bot, "
-          "but instead you need to run -m cloudjumper.")
