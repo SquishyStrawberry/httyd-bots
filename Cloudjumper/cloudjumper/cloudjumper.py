@@ -17,7 +17,7 @@ url_validator = re.compile(
     r"(?::\d+)?"  # optional port
     r"(?:/.+)?)", re.IGNORECASE)
 
-subreddit = re.compile("/r/(\S+)", re.IGNORECASE)
+subreddit = re.compile("/r/([^/]+)", re.IGNORECASE)
 cloudjumper_logger = logging.getLogger(__name__)
 
 
@@ -568,6 +568,13 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.send_action(bot.get_message("blokes_board").format(bot.config.get("blokes_url")))
             else:
                 bot.send_action(bot.get_message("blokes_board_fail"))
+
+        @self.cloudjumper_command("location")
+        def git_location(bot: Cloudjumper, message: str, sender: str)
+            if bot.config.get("github_location"):
+                bot.send_action(bot.get_message("location").format(bot.config.get("github_location")))
+            else:
+                bot.send_action(bot.get_message("location_fail"))
 
     def set_level(self, lvl=None):
         if self.config.get("debug"):

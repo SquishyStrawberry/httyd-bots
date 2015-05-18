@@ -29,6 +29,8 @@
     "unsheathes his teeth and bites {target}!"
   ],
   "deny": "won't follow {nick}'s instructions!",
+  "location": "can be found at {}",
+  "location_fail": "can't be found! :(",
   "blokes_board": "knows the url is '{}'!",
   "blokes_board_fail": "doesn't know the url!",
   "fail_defaults": "wasn't able to reload its defaults!",
