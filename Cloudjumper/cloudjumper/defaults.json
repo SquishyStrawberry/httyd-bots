@@ -32,6 +32,7 @@
   "location": "can be found at {}",
   "location_fail": "can't be found! :(",
   "blokes_board": "knows the url is '{}'!",
+  "no_commands": "has no commands.",
   "blokes_board_fail": "doesn't know the url!",
   "fail_defaults": "wasn't able to reload its defaults!",
   "link_subreddit": "says that the full link to the subreddit is '{link}'",

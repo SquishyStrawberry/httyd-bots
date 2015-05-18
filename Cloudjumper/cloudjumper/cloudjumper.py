@@ -426,11 +426,15 @@ class Cloudjumper(irc_helper.IRCHelper):
         @self.cloudjumper_command("list_commands", True, False)
         def list_commands(bot: Cloudjumper, message: str, sender: str):
             bot.irc_cursor.execute("SELECT trigger,response FROM Commands")
-            for trigger, response in bot.irc_cursor.fetchall():
-                bot.send_message(
-                    self.get_message("print_command").format(trigger=trigger,
-                                                             response=response),
-                    sender)
+            comms = bot.irc_cursor.fetchall()
+            if comms:
+                for trigger, response in comms:
+                    bot.send_message(
+                        bot.get_message("print_command").format(trigger=trigger,
+                                                                 response=response),
+                        sender)
+            else:
+                bot.send_action(bot.get_message("no_commands"))
             return True
 
         @self.cloudjumper_command("copy_original", True, False)
