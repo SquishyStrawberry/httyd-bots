@@ -194,7 +194,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
     def is_command(self, command, message, need_nick=True):
         # Regex <3
-        return bool(re.match("{}{}{}".format(self.nick if need_nick else "",
+        return bool(re.search("^{}{}{}".format(self.nick if need_nick else "",
                                              "!?\s" if need_nick else "",
                                              command),
                              message,
@@ -570,7 +570,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.send_action(bot.get_message("blokes_board_fail"))
 
         @self.cloudjumper_command("location")
-        def git_location(bot: Cloudjumper, message: str, sender: str)
+        def git_location(bot: Cloudjumper, message: str, sender: str):
             if bot.config.get("github_location"):
                 bot.send_action(bot.get_message("location").format(bot.config.get("github_location")))
             else:
