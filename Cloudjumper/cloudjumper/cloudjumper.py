@@ -17,7 +17,7 @@ url_validator = re.compile(
     r"(?::\d+)?"  # optional port
     r"(?:/.+)?)", re.IGNORECASE)
 
-subreddit = re.compile("/r/([a-zA-Z0-9_]+)", re.IGNORECASE)
+subreddit = re.compile("(?:\s+|^)/r/([a-zA-Z0-9_]+)", re.IGNORECASE)
 cloudjumper_logger = logging.getLogger(__name__)
 
 
