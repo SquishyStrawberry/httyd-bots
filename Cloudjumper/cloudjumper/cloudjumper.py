@@ -39,7 +39,7 @@ class Cloudjumper(irc_helper.IRCHelper):
     # Hard coded on purpose.
     excluded_nicknames = ("skullcrusher", "thornado")
 
-    def __init__(self, config_file):
+    def __init__(self, config_file, extra_settings={}):
         super_args = \
             ("user", "nick", "channel",
              "host", "port", "database_name",
@@ -48,6 +48,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
+        self.config.update(extra_settings)
         self.messages = self.config.get("messages", {})
         self.set_level()
         real_config = {k: v for k, v in self.config.items() if k in super_args}
@@ -591,14 +592,15 @@ class Cloudjumper(irc_helper.IRCHelper):
             logging.getLogger(__name__).setLevel(logging.INFO)
 
     @classmethod
-    def run_bot(cls):
+    def run_bot(cls, extra_settings={}):
 
         if not os.path.exists(cls.config_name):
             raise CloudjumperError("No such config file '{}'!".format(cls.config_name))
         else:
             with open(cls.config_name) as config_file:
                 # noinspection PyCallingNonCallable
-                bot = cls(config_file)
+                bot = cls(config_file, extra_settings)
+
 
             try:
                 bot.run()
