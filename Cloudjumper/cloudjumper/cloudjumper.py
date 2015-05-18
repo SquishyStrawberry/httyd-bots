@@ -194,7 +194,7 @@ class Cloudjumper(irc_helper.IRCHelper):
 
     def is_command(self, command, message, need_nick=True):
         # Regex <3
-        return bool(re.search("^{}{}{}".format(self.nick if need_nick else "",
+        return bool(re.match("{}{}{}.*?".format(self.nick if need_nick else "",
                                              "!?\s" if need_nick else "",
                                              command),
                              message,
