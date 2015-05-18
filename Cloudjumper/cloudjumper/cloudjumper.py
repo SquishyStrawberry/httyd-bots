@@ -17,7 +17,7 @@ url_validator = re.compile(
     r"(?::\d+)?"  # optional port
     r"(?:/.+)?)", re.IGNORECASE)
 
-subreddit = re.compile("/r/([a-zA-Z0-9_-]+)", re.IGNORECASE)
+subreddit = re.compile("/r/([a-zA-Z0-9_]+)", re.IGNORECASE)
 cloudjumper_logger = logging.getLogger(__name__)
 
 
@@ -205,7 +205,8 @@ class Cloudjumper(irc_helper.IRCHelper):
             @self.advanced_command(private_message)
             def more_inner(bot, message, sender):
                 if bot.is_command(command, message, need_nick):
-                    return func(bot, message, sender)
+                    func(bot, message, sender)
+                    return True
 
         return inner
 
@@ -575,6 +576,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.send_action(bot.get_message("location").format(bot.config.get("github_location")))
             else:
                 bot.send_action(bot.get_message("location_fail"))
+
 
     def set_level(self, lvl=None):
         if self.config.get("debug"):
