@@ -1,5 +1,5 @@
 {
-  "channel": "#httyd",
+  "channel": "#bot-test",
   "user": "JumperOfClouds",
   "nick": "Cloudjumper",
   "password": "",
@@ -8,7 +8,7 @@
   "fail_after": 10,
   "host": "irc.editingarchive.com",
   "port": 6667,
-  "debug": false,
+  "debug": true,
   "use_ssl": false,
   "roll_maximum": 1024,
   "dice_maximum": 20,

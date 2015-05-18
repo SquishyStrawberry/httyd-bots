@@ -18,6 +18,7 @@ url_validator = re.compile(
     r"(?:/.+)?)", re.IGNORECASE)
 
 subreddit = re.compile("(?:\s+|^)/r/([a-zA-Z0-9_]+)(?:\s+|$)", re.IGNORECASE)
+diefinder = re.compile("(^|\d+)d(\d+)$", re.IGNORECASE)
 cloudjumper_logger = logging.getLogger(__name__)
 
 
@@ -361,10 +362,14 @@ class Cloudjumper(irc_helper.IRCHelper):
                 bot.send_action(bot.get_message("dank_joke").format(nick=sender))
                 return True
             if len(message.split(" ")) >= 3:
-                die = message.split(" ")[2].split("d")
-                if len(die) == 1:
-                    die = ["1"] + die
-                amount, maximum = die
+                die = diefinder.match(message.split(" ")[2])
+                if die is None:
+                    bot.send_action(bot.get_message("diceerr").format(nick=sender))
+                    return True
+                amount = die.group(1)
+                if not amount:
+                    amount = "1"
+                maximum = die.group(2)
                 if not amount.isdigit() or not maximum.isdigit():
 
                     bot.send_action(bot.get_message("diceerr").format(nick=sender))
