@@ -8,19 +8,21 @@
   "fail_after": 10,
   "host": "irc.editingarchive.com",
   "port": 6667,
-  "debug": true,
+  "debug": false,
   "use_ssl": false,
-  "roll_maximum": 1024,
-  "dice_maximum": 20,
-  "inedible_victims": ["Cloudjumper"],
   "auto_admin": ["MysteriousMagenta", "Tomako"],
   "awesome_people": ["MysteriousMagenta", "Okisiroki", "Tomako", "Okisiroki-win"],
   "hosts": [],
   "database_name": "irc_database.db",
   "response_delay": 3,
+  
+  "roll_maximum": 1024,
+  "dice_maximum": 20,
+  "inedible_victims": ["Cloudjumper"],
   "blokes_url": "http://www.joel.pm/blokes",
   "github_location": "https://www.github.com/SquishyStrawberry/httyd-bots",
-  "messages": {
-
+  
+  "plugins": {
+    "standard_modules": ["*"]
   }
 }
