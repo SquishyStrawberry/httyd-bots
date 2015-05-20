@@ -39,8 +39,9 @@ def message_handler(bot, message, sender):
             bot.send_action(bot.get_message("vomit_superfluous"))
         return True
 
-    elif victim is not None:
-        if bot.is_command("spit", message, name_needed):
+
+    elif bot.is_command("spit", message, name_needed):
+        if victim is not None:
             bot.irc_cursor.execute("SELECT * FROM Stomach WHERE thing=?",
                                    (victim.lower(),))
             if bot.irc_cursor.fetchone():
@@ -49,9 +50,12 @@ def message_handler(bot, message, sender):
                 bot.send_action(bot.get_message("spit").format(victim=victim))
             else:
                 bot.send_action(bot.get_message("spit_superfluous").format(victim=victim))
-            return True
+        else:
+            bot.send_action(bot.get_message("command_error").format(nick=sender))
+        return True
 
-        elif bot.is_command("eat", message, name_needed):
+    elif bot.is_command("eat", message, name_needed):
+        if victim is not None:
             inedible = map(lambda x: x.lower(),
                            bot.config.get("inedible_victims", []))
             if victim.lower() not in inedible:
@@ -70,4 +74,6 @@ def message_handler(bot, message, sender):
                     bot.send_action(bot.get_message("eat_superfluous"))
             else:
                 bot.send_action(bot.get_message("eat_inedible").format(victim=victim))
-            return True
+        else:
+            bot.send_action(bot.get_message("command_error").format(nick=sender))
+        return True

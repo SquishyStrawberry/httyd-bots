@@ -3,6 +3,7 @@
 private_message = False
 name_needed = True
 
+
 def setup_instance(inst):
     inst.irc_cursor.execute("SELECT name FROM sqlite_master WHERE type=\"table\"")
     tables = tuple(map(lambda x: x[0], inst.irc_cursor.fetchall()))
@@ -14,7 +15,7 @@ def message_handler(bot, message, sender):
     args = message.split(" ", 3)
     if bot.is_command("tell", message, name_needed):
         if len(args) < int(name_needed) + 3:
-            bot.send_message(bot.get_message("command_error").format(nick=sender))
+            bot.send_action(bot.get_message("command_error").format(nick=sender))
         else:
             user, whisper = args[2:]
             user = user.lower()

@@ -194,14 +194,19 @@ class Cloudjumper(irc_helper.IRCHelper):
                     except ImportError:
                         continue
                     Cloudjumper.cloudjumper_logger.debug("[Loaded Plugin {}]".format(mod.__name__))
+                    
+                    handler_name = getattr(mod, "handler_name", "message_handler")
+                    setup_name = getattr(mod, "setup_name", "setup_instance")
+
                     # If you don't want a setup_instance, that's fine.
-                    if getattr(mod, "setup_instance", None) is not None:
-                        mod.setup_instance(self)
-                    if getattr(mod, "message_handler", None) is not None:
-                        priv_msg = getattr(mod, "private_message", False)
-                        if mod.message_handler.__name__ == "message_handler":
+                    if getattr(mod, setup_name, None) is not None:
+                        getattr(mod, setup_name)(self)
+                    
+                    if getattr(mod, handler_name, None) is not None:
+                        priv_msg = getattr(mod, handler_name, False)
+                        if mod.message_handler.__name__ == handler_name:
                             mod.message_handler.__name__ = mod.__name__
-                        self.advanced_command(priv_msg)(mod.message_handler)           
+                        self.advanced_command(priv_msg)(getattr(mod, handler_name))           
 
                 os.chdir(origin)
 
