@@ -10,15 +10,15 @@ def setup_instance(inst):
         inst.irc_cursor.execute("CREATE TABLE Whispers (id INTEGER PRIMARY KEY, user TEXT, message TEXT, sender TEXT)")
     
 
-def message_handling(bot, message, sender):
+def message_handler(bot, message, sender):
     args = message.split(" ", 3)
-    
     if bot.is_command("tell", message, name_needed):
         if len(args) < int(name_needed) + 3:
             bot.send_message(bot.get_message("command_error").format(nick=sender))
         else:
             user, whisper = args[2:]
             user = user.lower()
+            print("{!r} {!r}".format(user, whisper))
             if user == sender.lower(): 
                 bot.send_action(bot.get_message("mail_self"))
             elif user == bot.nick.lower():
@@ -33,4 +33,4 @@ def message_handling(bot, message, sender):
                 else:
                     bot.irc_cursor.execute("INSERT INTO Whispers VALUES (0,?,?,?)",
                                            (user, whisper, sender))
-            return True
+        return True

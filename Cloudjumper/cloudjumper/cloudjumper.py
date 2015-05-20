@@ -178,7 +178,10 @@ class Cloudjumper(irc_helper.IRCHelper):
         origin = os.getcwd()
         for plugin_dict in Cloudjumper.plugins:
             for directory, plugin_list in plugin_dict.items():
-                os.chdir(directory)
+                if os.path.isdir(directory):
+                    os.chdir(directory)
+                else:
+                    continue
 
                 if "*" in plugin_list:
                     plugin_list.extend(os.listdir("."))
@@ -190,11 +193,14 @@ class Cloudjumper(irc_helper.IRCHelper):
                         mod = (importlib.import_module(plugin_name))
                     except ImportError:
                         continue
+                    Cloudjumper.cloudjumper_logger.debug("[Loaded Plugin {}]".format(mod.__name__))
                     # If you don't want a setup_instance, that's fine.
                     if getattr(mod, "setup_instance", None) is not None:
                         mod.setup_instance(self)
                     if getattr(mod, "message_handler", None) is not None:
                         priv_msg = getattr(mod, "private_message", False)
+                        if mod.message_handler.__name__ == "message_handler":
+                            mod.message_handler.__name__ = mod.__name__
                         self.advanced_command(priv_msg)(mod.message_handler)           
 
                 os.chdir(origin)
