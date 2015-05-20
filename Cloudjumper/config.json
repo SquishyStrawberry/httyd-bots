@@ -1,5 +1,5 @@
 {
-  "channel": "#httyd",
+  "channel": "#bot-test",
   "user": "JumperOfClouds",
   "nick": "Cloudjumper",
   "password": "",
@@ -8,13 +8,14 @@
   "fail_after": 10,
   "host": "irc.editingarchive.com",
   "port": 6667,
-  "debug": false,
+  "debug": true,
   "use_ssl": false,
   "auto_admin": ["MysteriousMagenta", "Tomako"],
   "awesome_people": ["MysteriousMagenta", "Okisiroki", "Tomako", "Okisiroki-win"],
   "hosts": [],
   "database_name": "irc_database.db",
   "response_delay": 3,
+  "print_commands": true,
   
   "roll_maximum": 1024,
   "dice_maximum": 20,

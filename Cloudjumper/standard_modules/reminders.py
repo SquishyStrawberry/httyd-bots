@@ -3,7 +3,8 @@
 private_message = False
 name_needed = True
 
-def message_handler(bot, message, str):
+def message_handler(bot, message, sender):
+    print(bot, message, sender)
     if bot.is_command("blokes", message, name_needed):
         if bot.config.get("blokes_url"):
             bot.send_action(bot.get_message("blokes_board").format(bot.config.get("blokes_url")))

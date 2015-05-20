@@ -35,7 +35,7 @@ class Cloudjumper(irc_helper.IRCHelper):
             ("user", "nick", "channel",
              "host", "port", "database_name",
              "response_delay", "fail_after", "check_login",
-             "use_ssl")
+             "use_ssl", "print_commands")
 
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
@@ -184,7 +184,11 @@ class Cloudjumper(irc_helper.IRCHelper):
                     continue
 
                 if "*" in plugin_list:
+                    while "*" in plugin_list:
+                        plugin_list.remove("*")
                     plugin_list.extend(glob.glob("*.py"))
+
+                Cloudjumper.cloudjumper_logger.debug("[Need To Load: '{}']".format(plugin_list))
                 
                 for plugin_name in plugin_list:
                     if plugin_name.endswith(".py"):
@@ -192,6 +196,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                     try:
                         mod = (importlib.import_module(plugin_name))
                     except ImportError:
+                        Cloudjumper.cloudjumper_logger.debug("[Failed To Load '{}']".format(plugin_name))
                         continue
                     Cloudjumper.cloudjumper_logger.debug("[Loaded Plugin {}]".format(mod.__name__))
                     
@@ -203,13 +208,13 @@ class Cloudjumper(irc_helper.IRCHelper):
                         getattr(mod, setup_name)(self)
                     
                     if getattr(mod, handler_name, None) is not None:
-                        priv_msg = getattr(mod, handler_name, False)
-                        if mod.message_handler.__name__ == handler_name:
-                            mod.message_handler.__name__ = mod.__name__
-                        self.advanced_command(priv_msg)(getattr(mod, handler_name))           
+                        handler_func = getattr(mod, handler_name, False)
+                        priv_msg = getattr(mod, "private_message", False)
+                        if handler_func.__name__ == handler_name:
+                            handler_func.__name__ = mod.__name__
+                        self.advanced_command(priv_msg)(handler_func)           
 
                 os.chdir(origin)
-
         """
 
         # Still need to implement these in the new version.
