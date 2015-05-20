@@ -2,6 +2,7 @@
 
 import re
 import requests
+from bs4 import BeautifulSoup
 
 private_message = False
 name_needed = True

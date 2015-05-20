@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import re
+import glob
 import requests
 import json
 import irc_helper
@@ -42,8 +43,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.messages = self.config.get("messages", {})
         self.set_level()
 
-        real_config = {k: v for k, v in self.config.items() if k in super_args}        
-        super().__init__(**real_config)
+        super().__init__(**{k: v for k, v in self.config.items() if k in super_args})
 
         if self.nick not in self.config.get("inedible_victims", []):
             self.config.get("inedible_victims", []).append(self.nick.lower())
@@ -184,7 +184,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                     continue
 
                 if "*" in plugin_list:
-                    plugin_list.extend(os.listdir("."))
+                    plugin_list.extend(glob.glob("*.py"))
                 
                 for plugin_name in plugin_list:
                     if plugin_name.endswith(".py"):
