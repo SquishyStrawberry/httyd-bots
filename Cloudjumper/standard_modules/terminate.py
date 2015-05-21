@@ -5,6 +5,7 @@ name_needed = True
 
 
 def message_handler(bot, message, sender):
+    print(bot.has_flag("admin", sender), bot.is_command("terminate", message, name_needed), bot.is_command("crash", message, name_needed))
     if bot.is_command("terminate", message, name_needed):
         if bot.has_flag("admin", sender):
             bot.quit()

@@ -196,9 +196,10 @@ class Cloudjumper(irc_helper.IRCHelper):
                         plugin_name = plugin_name[:-3]
                     try:
                         mod = (importlib.import_module(plugin_name))
-                    except ImportError:
-                        Cloudjumper.cloudjumper_logger.debug("[Failed To Load '{}']".format(plugin_name))
+                    except ImportError as e:
+                        Cloudjumper.cloudjumper_logger.debug("[Failed To Load '{}' With Error '{}']".format(plugin_name, e))
                         continue
+
                     Cloudjumper.cloudjumper_logger.debug("[Loaded Plugin {}]".format(mod.__name__))
                     
                     handler_name = getattr(mod, "handler_name", "message_handler")
@@ -213,6 +214,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                         priv_msg = getattr(mod, "private_message", False)
                         if handler_func.__name__ == handler_name:
                             handler_func.__name__ = mod.__name__
+                        
                         self.advanced_command(priv_msg)(handler_func)           
 
                 os.chdir(origin)
@@ -305,7 +307,10 @@ class Cloudjumper(irc_helper.IRCHelper):
             with open(cls.config_name) as config_file:
                 bot = cls(config_file, extra_settings)
 
+            cls.cloudjumper_logger.debug("[Channel Commands: {}]".format(bot.channel_commands))
+            cls.cloudjumper_logger.debug("[Private Commands: {}]".format(bot.private_commands))
             
+
             try:
                 bot.run()
             except KeyboardInterrupt:
