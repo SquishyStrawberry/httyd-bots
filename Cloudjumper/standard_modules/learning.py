@@ -16,7 +16,7 @@ def message_handler(bot, message, sender):
                 trigger, response = learn_args[0].strip(), learn_args[1].strip()
                 bot.send_action(bot.get_message("learn").format(nick=sender))
                 bot.irc_cursor.execute("SELECT * FROM Commands WHERE trigger=?",
-                                       (trigger))
+                                       (trigger,))
                 if bot.irc_cursor.fetchone():
                     bot.send_action(bot.get_message("learn_superfluous"))
                 else:
