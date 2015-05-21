@@ -40,6 +40,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.config_file = config_file
         self.config = json.loads(self.config_file.read())
         self.config.update(extra_settings)
+
         self.messages = self.config.get("messages", {})
         self.set_level()
 
@@ -289,6 +290,11 @@ class Cloudjumper(irc_helper.IRCHelper):
         else:
             super().set_level(logging.INFO)
             logging.getLogger(__name__).setLevel(logging.INFO)
+
+    def quit(self, message=None):
+        if message is None:
+            message = self.get_message("disconnect")
+        super().quit(message)
 
     @classmethod
     def run_bot(cls, extra_settings={}):
