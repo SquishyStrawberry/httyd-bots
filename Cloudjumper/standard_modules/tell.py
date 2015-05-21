@@ -19,7 +19,6 @@ def message_handler(bot, message, sender):
         else:
             user, whisper = args[2:]
             user = user.lower()
-            print("{!r} {!r}".format(user, whisper))
             if user == sender.lower(): 
                 bot.send_action(bot.get_message("mail_self"))
             elif user == bot.nick.lower():

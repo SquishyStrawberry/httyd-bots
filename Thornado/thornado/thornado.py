@@ -8,6 +8,7 @@ import time
 import threading
 import praw.helpers
 import irc_helper
+import re
 
 ONE_DAY = 1 * 60 * 60 * 24
 thornado_logger = logging.getLogger(__name__)
@@ -20,9 +21,10 @@ class ThornadoError(Exception):
 class Thornado(irc_helper.IRCBot):
     config_name = "config.json"
 
-    def __init__(self, config_file, auto_start=True):
+    def __init__(self, config_file, auto_start=True, extra_settings={}):
         needed = ("user", "nick", "channel", "host", "port", "use_ssl")
-        self.config = json.loads(config_file.read())
+        self.config = json.load(config_file)
+        self.config.update(extra_settings)
         self.messages = self.config.get("messages", {})
         try:
             with open(self.config.get("post_file")) as visited_file:
@@ -68,7 +70,7 @@ class Thornado(irc_helper.IRCBot):
         super().quit(message)
         thornado_logger.debug("[Quitting with list of posts {}]".format(self.posts))
         with open(self.config.get("post_file"), "w") as visited_file:
-            visited_file.write(json.dumps(list(self.posts)))
+            json.dump(list(self.posts), visited_file, indent=2)
 
     def set_level(self, lvl=None):
         if self.config.get("debug"):
@@ -83,11 +85,11 @@ class Thornado(irc_helper.IRCBot):
         self.send_action(self.messages.get("join", "flies in"))
 
     @classmethod
-    def run_bot(cls):
+    def run_bot(cls, extra_settings={}):
         if not os.path.exists(cls.config_name):
             raise ThornadoError("Couldn't find Config File!")
         with open(cls.config_name) as config_file:
-            bot = cls(config_file)
+            bot = cls(config_file, extra_settings=extra_settings)
 
         try:
             bot.run()

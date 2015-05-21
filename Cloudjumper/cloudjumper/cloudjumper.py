@@ -38,7 +38,7 @@ class Cloudjumper(irc_helper.IRCHelper):
              "use_ssl", "print_commands")
 
         self.config_file = config_file
-        self.config = json.loads(self.config_file.read())
+        self.config = json.load(self.config_file)
         self.config.update(extra_settings)
 
         self.messages = self.config.get("messages", {})
@@ -70,7 +70,7 @@ class Cloudjumper(irc_helper.IRCHelper):
         block_data = super().extra_handling(block_data)
         if block_data.get("command", "").upper() == "JOIN":
             if not self.has_flag("ignore", block_data.get("sender")):
-                greeting = random.choice(self.get_message("awesome_greetings")).format(
+                greeting = random.choice(self.get_message("greetings")).format(
                     nick=block_data.get("sender"))
                 self.send_action(greeting)
 
@@ -317,7 +317,8 @@ class Cloudjumper(irc_helper.IRCHelper):
 
 
 try:
-    with open(os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1]) + os.sep + "defaults.json") as default_file:
-        Cloudjumper.defaults = json.loads(default_file.read())
+    location = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-1])
+    with open(location + os.sep + "defaults.json") as default_file:
+        Cloudjumper.defaults = json.load(default_file)
 except FileNotFoundError as e:
     raise CloudjumperError("No defaults file was found!") from e

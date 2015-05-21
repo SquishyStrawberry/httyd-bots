@@ -13,9 +13,7 @@
     "joyfully waggles his tail at {nick}'s arrival",
     "cheerfully waggles his tail at {nick}'s arrival",
     "playfully waggles his tail at {nick}'s arrival",
-    "welcomes {nick} with a cheerful warble"
-  ],
-  "awesome_greetings": [
+    "welcomes {nick} with a cheerful warble",
     "high-fives {nick}!",
     "fist-bumps {nick}!",
     "climbs {nick}!"
