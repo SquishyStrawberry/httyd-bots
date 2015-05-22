@@ -15,7 +15,7 @@ parser.add_argument("-e", "--email", type=str, help="What email to login with.")
 parser.add_argument("-n", "--nick", type=str, help="What nickname to use.")
 parser.add_argument("-u", "--user", type=str, help="What username to use.")
 parser.add_argument("-d", "--database", type=str, help="What database to use", dest="database_name")
-
+parser.add_argument("-k", "--kill", action="store_true", help="Do not start at all.")
 
 argv = parser.parse_args()
 argv_dict = argv.__dict__

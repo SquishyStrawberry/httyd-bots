@@ -214,7 +214,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                         priv_msg = getattr(mod, "private_message", False)
                         if handler_func.__name__ == handler_name:
                             handler_func.__name__ = mod.__name__
-                        
+
                         self.advanced_command(priv_msg)(handler_func)           
 
                 os.chdir(origin)
@@ -307,17 +307,17 @@ class Cloudjumper(irc_helper.IRCHelper):
             with open(cls.config_name) as config_file:
                 bot = cls(config_file, extra_settings)
 
-            cls.cloudjumper_logger.debug("[Channel Commands: {}]".format(bot.channel_commands))
-            cls.cloudjumper_logger.debug("[Private Commands: {}]".format(bot.private_commands))
+            cls.cloudjumper_logger.debug("[Channel Commands: {}]".format([i.__name__ for i in bot.channel_commands]))
+            cls.cloudjumper_logger.debug("[Private Commands: {}]".format([i.__name__ for i in bot.private_commands]))
             
-
-            try:
-                bot.run()
-            except KeyboardInterrupt:
-                pass
-            finally:
-                if bot.started:
-                    bot.quit(bot.get_message("disconnect"))
+            if not extra_settings.get("kill"):
+                try:
+                    bot.run()
+                except KeyboardInterrupt:
+                    pass
+                finally:
+                    if bot.started:
+                        bot.quit(bot.get_message("disconnect"))
 
 
 

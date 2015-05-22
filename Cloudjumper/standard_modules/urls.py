@@ -25,9 +25,11 @@ def message_handler(bot, message, sender):
     url_match = url_validator.search(message.strip())
     if url_match is not None:
         url = url_match.group(1)
-        req = bot.title_session.get(url)
+        req = bot.title_session.get(url,
+                                    stream=True, 
+                                    timeout=bot.config.get("request_timeout", 10))
         if req.ok:
-            soup = BeautifulSoup(req.text)
+            soup = BeautifulSoup(next(req.iter_content(2048)))
             if soup.title is not None:
                 bot.send_action(bot.get_message("urltitle").format(title=soup.title.text))
         return True
