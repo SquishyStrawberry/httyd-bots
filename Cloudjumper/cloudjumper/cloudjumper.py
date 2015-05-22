@@ -221,35 +221,6 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         # Still need to implement these in the new version.
 
-        @self.cloudjumper_command("purge_commands", True, False)
-        def clear_commands(bot: Cloudjumper, message: str, sender: str):
-            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                bot.irc_cursor.execute("SELECT * FROM Commands")
-                if not bot.irc_cursor.fetchall():
-                    bot.send_action(self.get_message("purge_commands_superfluous"), sender)
-                else:
-                    bot.irc_cursor.execute("DELETE FROM Commands")
-                    bot.send_action(self.get_message("purge_commands"), sender)
-
-            else:
-                bot.send_action(bot.get_message("deny_command"), sender)
-            return True
-
-       
-
-        @self.cloudjumper_command("list_commands", True, False)
-        def list_commands(bot: Cloudjumper, message: str, sender: str):
-            bot.irc_cursor.execute("SELECT trigger,response FROM Commands")
-            comms = bot.irc_cursor.fetchall()
-            if comms:
-                for trigger, response in comms:
-                    bot.send_message(
-                        bot.get_message("print_command").format(trigger=trigger,
-                                                                 response=response),
-                        sender)
-            else:
-                bot.send_action(bot.get_message("no_commands"))
-            return True
 
         @self.cloudjumper_command("reload_config", True, False)
         def reload_config(bot: Cloudjumper, message: str, sender: str):
@@ -267,17 +238,6 @@ class Cloudjumper(irc_helper.IRCHelper):
                 except NameError:
                     # If this gets compiled with cx_freeze, we won't have __file__
                     bot.send_action(bot.get_message("fail_defaults"), sender)
-            else:
-                bot.send_action(bot.get_message("deny_command"), sender)
-            return True
-
-        @self.cloudjumper_command("move_channel", True, False)
-        def move_channel(bot: Cloudjumper, message: str, sender: str):
-            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                channel = message.split(" ")[1].lower()
-                bot.leave_channel(bot.get_message("switch_channel"))
-                bot.join_channel(channel)
-
             else:
                 bot.send_action(bot.get_message("deny_command"), sender)
             return True
