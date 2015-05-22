@@ -31,5 +31,5 @@ def message_handler(bot, message, sender):
         if req.ok:
             soup = BeautifulSoup(next(req.iter_content(2048)))
             if soup.title is not None:
-                bot.send_action(bot.get_message("urltitle").format(title=soup.title.text))
+                bot.send_action(bot.get_message("urltitle").format(title=soup.title.text.strip()))
         return True

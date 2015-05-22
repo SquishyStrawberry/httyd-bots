@@ -40,25 +40,23 @@ class Cloudjumper(irc_helper.IRCHelper):
         self.config_file = config_file
         self.config = json.load(self.config_file)
         self.config.update(extra_settings)
-
         self.messages = self.config.get("messages", {})
         self.set_level()
 
         super().__init__(**{k: v for k, v in self.config.items() if k in super_args})
 
-        if self.nick not in self.config.get("inedible_victims", []):
-            self.config.get("inedible_victims", []).append(self.nick.lower())
-
+        self.config["inedible_victim"] = set(self.config.get("inedible_victims", [])) + {self.nick}
         
-        for setting in self.config.get("auto_admin", []):
-            self.add_flag("superadmin", setting)
-
         self.irc_cursor.execute("SELECT username FROM Flags WHERE flags LIKE \"%s%\"")
         for (user,) in self.irc_cursor.fetchall():
             self.add_flag("admin", user)
             self.add_flag("whitelist", user)
 
-        Cloudjumper.plugins.append(self.config.get("plugins", {})) 
+        for setting in self.config.get("auto_admin", []):
+            self.add_flag("superadmin", setting)
+
+        if self.config.get("plugins") is not None:
+            Cloudjumper.plugins.append(self.config["plugins"]) 
 
         # Make sure this is the last line in __init__!
         self.apply_commands()           
@@ -310,7 +308,7 @@ class Cloudjumper(irc_helper.IRCHelper):
             cls.cloudjumper_logger.debug("[Channel Commands: {}]".format([i.__name__ for i in bot.channel_commands]))
             cls.cloudjumper_logger.debug("[Private Commands: {}]".format([i.__name__ for i in bot.private_commands]))
             
-            if not extra_settings.get("kill"):
+            if not bot.config.get("kill"):
                 try:
                     bot.run()
                 except KeyboardInterrupt:
