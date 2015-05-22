@@ -217,32 +217,6 @@ class Cloudjumper(irc_helper.IRCHelper):
                         self.advanced_command(priv_msg)(handler_func)           
 
                 os.chdir(origin)
-        """
-
-        # Still need to implement these in the new version.
-
-
-        @self.cloudjumper_command("reload_config", True, False)
-        def reload_config(bot: Cloudjumper, message: str, sender: str):
-            if bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
-                if not bot.config_file.closed:
-                    bot.config_file.close()
-                bot.config_file = open(bot.config_file.name, bot.config_file.mode)
-                bot.config = json.loads(bot.config_file.read())
-                bot.messages = bot.config.get("messages", {})
-                bot.send_action(bot.get_message("config_reloaded"), sender)
-                try:
-                    default_path = os.path.abspath(__file__).split(os.sep)[:-1] + os.sep + "defaults.json"
-                    with open(os.sep.join(default_path)) as default_file:
-                        bot.__class__.defaults = json.loads(default_file.read())
-                except NameError:
-                    # If this gets compiled with cx_freeze, we won't have __file__
-                    bot.send_action(bot.get_message("fail_defaults"), sender)
-            else:
-                bot.send_action(bot.get_message("deny_command"), sender)
-            return True
-
-        """
 
     def set_level(self, lvl=None):
         if self.config.get("debug"):
