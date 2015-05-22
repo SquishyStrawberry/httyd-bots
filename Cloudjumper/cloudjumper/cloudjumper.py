@@ -45,7 +45,8 @@ class Cloudjumper(irc_helper.IRCHelper):
 
         super().__init__(**{k: v for k, v in self.config.items() if k in super_args})
 
-        self.config["inedible_victim"] = set(self.config.get("inedible_victims", [])) + {self.nick}
+        self.config["inedible_victims"] = set(self.config.get("inedible_victims", []))
+        self.config["inedible_victims"].add(self.nick)
         
         self.irc_cursor.execute("SELECT username FROM Flags WHERE flags LIKE \"%s%\"")
         for (user,) in self.irc_cursor.fetchall():
