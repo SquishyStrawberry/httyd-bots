@@ -34,7 +34,7 @@ def message_handler(bot, message, sender):
                 else:
                     bot.remove_flag(flag, user)
                     new_flags = ", ".join(bot.get_flags(user))
-                    bot.send_action(bot.get_message("flag_remove").format(flag=flag, flags=new_flags), sender)
+                    bot.send_action(bot.get_message("flag_remove").format(flag=flag, flags=new_flags, user=user), sender)
             
         elif bot.is_command("list_flags", message, name_needed):
             if user_flags:
