@@ -83,7 +83,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                                     (block_data.get("sender").lower(),))
             messages = self.irc_cursor.fetchall()
             if messages:
-                self.send_message(self.get_message("announce_mail").format(nick=block_data.get("sender")))
+                self.send_action(self.get_message("announce_mail").format(nick=block_data.get("sender")))
                 for message, sender in messages:
                     self.send_action(self.get_message("send_mail").format(message=message, sender=sender),
                                      block_data.get("sender"))
@@ -249,6 +249,8 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.run()
                 except KeyboardInterrupt:
                     pass
+                except (ConnectionResetError, BrokenPipeError) as e:
+                    cls.cloudjumper_logger.debug("[Connection Failed With Error '{}', Exiting...]".format(e))
                 finally:
                     if bot.started:
                         bot.quit(bot.get_message("disconnect"))

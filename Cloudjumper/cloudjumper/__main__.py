@@ -16,12 +16,10 @@ parser.add_argument("-n", "--nick", type=str, help="What nickname to use.")
 parser.add_argument("-u", "--user", type=str, help="What username to use.")
 parser.add_argument("-d", "--database", type=str, help="What database to use", dest="database_name")
 parser.add_argument("-k", "--kill", action="store_true", help="Do not start at all.")
-parser.add_argument("-l", "--lols", action="store_true", help="It's a debug feature.")
 
 argv = parser.parse_args()
 argv_dict = argv.__dict__
 argv_dict = {k: v for k, v in argv_dict.items() if v is not None}
-if argv_dict.get("lols"):
-    print("Heya!")
+
 
 Cloudjumper.run_bot(argv_dict)
