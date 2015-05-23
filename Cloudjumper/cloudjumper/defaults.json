@@ -34,6 +34,7 @@
   "blokes_board": "knows the url is '{}'!",
   "command_error": "tilts his head in confusion at {nick}.",
   "no_commands": "has no commands.",
+  "version": "is version {version}",
   "blokes_board_fail": "doesn't know the url!",
   "fail_defaults": "wasn't able to reload its defaults!",
   "link_subreddit": "says that the full link to the subreddit is '{link}'",

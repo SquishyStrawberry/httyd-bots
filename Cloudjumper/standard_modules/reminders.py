@@ -16,3 +16,6 @@ def message_handler(bot, message, sender):
         else:
             bot.send_action(bot.get_message("location_fail"))
         return True
+    elif bot.is_command("version", message, name_needed):
+        bot.send_action(bot.get_message("version").format(version=getattr(bot.__class__, "version", 1337)))
+        return True
