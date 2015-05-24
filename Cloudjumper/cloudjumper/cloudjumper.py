@@ -28,7 +28,7 @@ class Cloudjumper(irc_helper.IRCHelper):
     excluded_nicknames = ("skullcrusher", "thornado")
     plugins = []
     cloudjumper_logger = logging.getLogger(__name__)
-    version = 2.0
+    version = 2.001
 
 
     def __init__(self, config_file, extra_settings={}):
