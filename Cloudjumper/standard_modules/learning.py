@@ -14,6 +14,10 @@ def message_handler(bot, message, sender):
         if len(learn_args) >= 2:
             if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
                 trigger, response = learn_args[0].strip(), learn_args[1].strip()
+                if trigger.endswith("\\"):
+                    trigger = trigger[:-1]
+                if response.endswith("\\"):
+                    response = response[:-1]
                 bot.send_action(bot.get_message("learn").format(nick=sender))
                 bot.irc_cursor.execute("SELECT * FROM Commands WHERE trigger=?",
                                        (trigger,))

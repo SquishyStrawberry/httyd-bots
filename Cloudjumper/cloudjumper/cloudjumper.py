@@ -215,7 +215,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                         if handler_func.__name__ == handler_name:
                             handler_func.__name__ = mod.__name__
 
-                        self.advanced_command(priv_msg)(handler_func)           
+                        self.advanced_command(priv_msg)(handler_func)         
 
                 os.chdir(origin)
 
@@ -241,9 +241,11 @@ class Cloudjumper(irc_helper.IRCHelper):
             with open(cls.config_name) as config_file:
                 bot = cls(config_file, extra_settings)
 
-            cls.cloudjumper_logger.debug("[Channel Commands: {}]".format([i.__name__ for i in bot.channel_commands]))
-            cls.cloudjumper_logger.debug("[Private Commands: {}]".format([i.__name__ for i in bot.private_commands]))
+            cls.cloudjumper_logger.debug("[Channel Commands: {}]".format(", ".join(i.__name__ for i in bot.channel_commands)))
+            cls.cloudjumper_logger.debug("[Private Commands: {}]".format(", ".join(i.__name__ for i in bot.private_commands)))
             
+            # Sometimes I just want to test if I've got syntax errors, or if my class doesn't __init__ correctly.
+            # That's what this flag is used for.
             if not bot.config.get("kill"):
                 try:
                     bot.run()
