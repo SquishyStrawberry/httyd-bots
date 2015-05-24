@@ -15,8 +15,10 @@ def message_handler(bot, message, sender):
             if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
                 trigger, response = learn_args[0].strip(), learn_args[1].strip()
                 # Since regex is weird, we need to escape a lone \ on the end of the line.
-                if trigger[-1] == "\\" and trigger[-2] != "\\":
-                    trigger += "\\"
+                
+                if trigger[-1] == "\\": 
+                    if len(trigger) == 1 or trigger[-2] != "\\":
+                        trigger += "\\"
                 bot.send_action(bot.get_message("learn").format(nick=sender))
                 bot.irc_cursor.execute("SELECT * FROM Commands WHERE trigger=?",
                                        (trigger,))
@@ -34,6 +36,9 @@ def message_handler(bot, message, sender):
 
     elif bot.is_command("forget", message, name_needed):
         trigger = learn_args[0].strip()
+        if trigger[-1] == "\\": 
+            if len(trigger) == 1 or trigger[-2] != "\\":
+                trigger += "\\"
         if bot.has_flag("whitelist", sender) or bot.has_flag("admin", sender) or bot.has_flag("superadmin", sender):
             bot.irc_cursor.execute("SELECT * FROM Commands WHERE trigger=?", (trigger,))
             response = bot.irc_cursor.fetchone()
