@@ -32,6 +32,7 @@ def message_handler(bot, message, sender):
          
         else:
             bot.send_action(bot.get_message("dank_joke").format(nick=sender))
+            return True
 
         bot.send_action(bot.get_message("diceerr").format(nick=sender))
         return True
