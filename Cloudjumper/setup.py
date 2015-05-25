@@ -15,7 +15,7 @@ packs = setuptools.find_packages()
 def setup():
     setuptools.setup(
         name="cloudjumper",
-        version=2.002,
+        version=2.003,
         description="A bot that can learn, attack, eat, etc... in IRC!",
         author="SquishyStrawberry",
         install_requires=reqs,
