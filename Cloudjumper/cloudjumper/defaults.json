@@ -61,6 +61,7 @@
   "stomach": "is digesting {victims}...",
   "roll": "rolls a {result} for {nick}!",
   "nodice": "can't find a die of that size for {nick}...",
+  "list_modules": "is running {modules}.",
   "diceerr": "can't find such a die for {nick}...",
   "dank_joke": "rolls his eyes at {nick}",
   "awesome_person": "fist-bumps {nick}!",
