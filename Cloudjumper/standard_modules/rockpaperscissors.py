@@ -16,7 +16,7 @@ pairs = {
 def message_handler(bot, message, sender):
     args = message.split(" ")
     if bot.is_command("play", message, name_needed):
-        if len(args) < int(name_needed)+2:
+        if len(args) < int(name_needed)+2 or args[int(name_needed)+1].lower() not in pairs:
             bot.send_action(bot.get_message("command_error").format(nick=sender))
         else:
             move = args[int(name_needed)+1].lower()
