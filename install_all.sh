@@ -4,9 +4,13 @@
 set -e
 projectRoot=$(pwd)
 
-if hash python3; then
+echo "A venv is now mandatory, if you wish to install globally do so manually."
+
+python3 -c "print" > /dev/null 2> /dev/null
+if [[ $? == 0 ]]; then
     echo "Found Python3"
-    if hash pip3; then
+    pip3 > /dev/null 2> /dev/null
+    if [[ $? == 0 ]]; then
         echo "Found Pip3"
     else
         echo "Pip3 was not found, exiting..." >&2
@@ -17,8 +21,7 @@ else
     exit 1
 fi
 
-echo "A Venv is now mandatory. If you wish to install globally, please do so manually."
-echo "Making Venv... (this will take a while.)"
+echo "Making venv... (This will take a while)"
 python3 -m venv httyd_env
 source httyd_env/bin/activate
 
