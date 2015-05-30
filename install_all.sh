@@ -9,11 +9,11 @@ echo "A venv is now mandatory, if you wish to install globally do so manually."
 python3 -c "print" > /dev/null 2> /dev/null
 if [[ $? == 0 ]]; then
     echo "Found Python3"
-    pip3 > /dev/null 2> /dev/null
+    pip > /dev/null 2> /dev/null
     if [[ $? == 0 ]]; then
         echo "Found Pip3"
     else
-        echo "Pip3 was not found, exiting..." >&2
+        echo "Pip was not found, exiting..." >&2
         exit 1
     fi
 else
@@ -22,7 +22,7 @@ else
 fi
 
 echo "Making venv... (This will take a while)"
-python3 -m venv httyd_env
+python3 -m venv httyd_env || virtualenv -p python3 httyd_env
 source httyd_env/bin/activate
 
 if [[ -e ${projectRoot}/requirements.txt ]]; then
