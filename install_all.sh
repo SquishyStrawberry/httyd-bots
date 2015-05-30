@@ -29,5 +29,5 @@ else
     echo "No global requirements.txt in ${projectRoot}"
 fi
 
-find ${projectRoot} -name "setup.py" -maxdepth 2 -execdir "python3 {} install \;"
+find ${projectRoot} -name "setup.py" -maxdepth 2 -execdir python3 {} install \;
 
