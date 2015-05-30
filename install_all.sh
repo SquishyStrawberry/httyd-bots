@@ -22,15 +22,30 @@ else
 fi
 
 echo "Making venv... (This will take a while)"
-python3 -m venv httyd_env || virtualenv -p python3 httyd_env
+
+echo "Trying -m venv..."
+python3 -m venv httyd_env
+if [[ $? != 0 ]]; then
+    echo "Failed with -m venv, trying virtualenv."
+    virtualenv -p python3 httyd_env
+    if [[ $? != 0 ]]; then
+        echo "Could not run virtualenv, please report error message."
+        exit 1
+    else
+        echo "virtualenv succeeded..."
+    fi
+else
+    echo "-m venv succeeded..."
+fi
+
 source httyd_env/bin/activate
 
-if [[ -e ${projectRoot}/requirements.txt ]]; then
-    echo "Found global requirements.txt in ${projectRoot}"
-    pip3 install -r ${projectRoot}/requirements.txt --upgrade
-else
-    echo "No global requirements.txt in ${projectRoot}"
-fi
+#if [[ -e ${projectRoot}/requirements.txt ]]; then
+#    echo "Found global requirements.txt in ${projectRoot}"
+#    pip3 install -r ${projectRoot}/requirements.txt --upgrade
+#else
+#    echo "No global requirements.txt in ${projectRoot}"
+#fi
 
 find ${projectRoot} -name "setup.py" -maxdepth 2 -execdir python3 {} install \;
 
