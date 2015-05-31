@@ -7,13 +7,6 @@ echo "A venv is now mandatory, if you wish to install globally do so manually."
 python3 -c "print" > /dev/null 2> /dev/null
 if [[ $? == 0 ]]; then
     echo "Found Python3"
-    pip > /dev/null 2> /dev/null
-    if [[ $? == 0 ]]; then
-        echo "Found Pip3"
-    else
-        echo "Pip was not found, exiting..." >&2
-        exit 1
-    fi
 else
     echo "Python3 was not found, exiting..." >&2
     exit 1
