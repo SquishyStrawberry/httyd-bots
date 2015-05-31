@@ -26,10 +26,13 @@ class Thornado(irc_helper.IRCBot):
         self.config = json.load(config_file)
         self.config.update(extra_settings)
         self.messages = self.config.get("messages", {})
-        try:
+        if os.path.exists(self.config.get("post_file")):
             with open(self.config.get("post_file")) as visited_file:
-                self.posts = set(json.loads(visited_file.read()))
-        except (FileNotFoundError, ValueError):
+                try:
+                    self.posts = set(json.loads(visited_file.read()))
+                except ValueError:
+                    self.posts = set()
+        else:
             self.posts = set()
 
         self.reddit = praw.Reddit(self.config.get("useragent", "Thornado"))
