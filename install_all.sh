@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Exists on error.
-set -e
 projectRoot=$(pwd)
 
 echo "A venv is now mandatory, if you wish to install globally do so manually."
