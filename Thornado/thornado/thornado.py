@@ -20,6 +20,7 @@ class ThornadoError(Exception):
 
 class Thornado(irc_helper.IRCBot):
     config_name = "config.json"
+    version = 1.3001
 
     def __init__(self, config_file, auto_start=True, extra_settings={}):
         needed = ("user", "nick", "channel", "host", "port", "use_ssl")
@@ -43,7 +44,8 @@ class Thornado(irc_helper.IRCBot):
         if self.config.get("password"):
             self.register(self.config.get("password"), self.config.get("email"), True)
 
-        self.thread = threading.Thread(target=self.search_subreddit, daemon=True)
+        self.thread = threading.Thread(target=self.search_subreddit)
+        self.thread.daemon = True
         self.start = self.thread.start
 
         if auto_start:

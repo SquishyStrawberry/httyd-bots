@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sre_constants
+import re
 
 private_message = False
 name_needed = True
@@ -19,6 +21,11 @@ def message_handler(bot, message, sender):
                 if trigger[-1] == "\\": 
                     if len(trigger) == 1 or trigger[-2] != "\\":
                         trigger += "\\"
+                try:
+                    re.compile(trigger)
+                except sre_constants.error:
+                    bot.send_action(bot.get_message("command_error").format(nick=sender))
+                    return True
                 bot.send_action(bot.get_message("learn").format(nick=sender))
                 bot.irc_cursor.execute("SELECT * FROM Commands WHERE trigger=?",
                                        (trigger,))
