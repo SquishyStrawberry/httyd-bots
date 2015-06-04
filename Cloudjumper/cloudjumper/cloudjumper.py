@@ -4,11 +4,10 @@ import os
 import random
 import re
 import glob
-import requests
 import json
-import irc_helper
 import importlib
-from bs4 import BeautifulSoup
+
+import irc_helper
 
 
 class CloudjumperError(irc_helper.IRCError):
@@ -251,8 +250,6 @@ class Cloudjumper(irc_helper.IRCHelper):
                     bot.run()
                 except KeyboardInterrupt:
                     pass
-                except (ConnectionResetError, BrokenPipeError) as e:
-                    cls.cloudjumper_logger.debug("[Connection Failed With Error '{}', Exiting...]".format(e))
                 finally:
                     if bot.started:
                         bot.quit(bot.get_message("disconnect"))

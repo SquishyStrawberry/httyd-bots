@@ -3,12 +3,13 @@
 import json
 import logging
 import os
-import praw
 import time
 import threading
+
+import praw
 import praw.helpers
 import irc_helper
-import re
+
 
 ONE_DAY = 1 * 60 * 60 * 24
 thornado_logger = logging.getLogger(__name__)
