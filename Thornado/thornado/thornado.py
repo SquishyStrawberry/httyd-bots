@@ -103,7 +103,7 @@ class Thornado(irc_helper.IRCBot):
         # Sanity check.
         if all(getattr(post, i, None) for i in Thornado.validation):
             # Posted in the time limit.
-            if post.created - time.time() <= self.config.get("post_time", ONE_DAY):
+            if time.time() - post.created <= self.config.get("post_time", ONE_DAY):
                 return True
         return False
 
