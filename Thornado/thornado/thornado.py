@@ -12,6 +12,7 @@ import irc_helper
 
 
 ONE_DAY = 1 * 60 * 60 * 24
+TEN_MINUTES = 1 * 60 * 10
 thornado_logger = logging.getLogger(__name__)
 
 
@@ -21,7 +22,12 @@ class ThornadoError(Exception):
 
 class Thornado(irc_helper.IRCBot):
     config_name = "config.json"
-    version = 1.3001
+    validation = [
+        "id",
+        "author",
+        "created",
+        "title"
+    ]
 
     def __init__(self, config_file, auto_start=True, extra_settings={}):
         needed = ("user", "nick", "channel", "host", "port", "use_ssl")
@@ -57,20 +63,22 @@ class Thornado(irc_helper.IRCBot):
         Not intended for use outside of the internal thread.
         Searches self.subreddit for new posts, and posts them to self.channel
         """
-        for post in praw.helpers.submission_stream(self.reddit, self.subreddit, 100, 0):
-            post_time = time.time() - post.created
-            if post and post.id not in self.posts and post.author and post_time < self.config.get("post_time", ONE_DAY):
-                default = "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
-                message = self.messages.get("found_post", default)
-                message = message.format(subreddit=self.subreddit,
-                                         title=post.title,
-                                         submitter=post.author.name,
-                                         link="http://redd.it/" + post.id,
-                                         post=post)
+        default = "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
+        base_message = self.messages.get("found_post", default)
+        while True:
+            posts = self.reddit.get_new()
+            posts = filter(self.is_valid, posts)
+            for post in posts:
+                message = base_message.format(subreddit=self.subreddit,
+                                              title=post.title,
+                                              submitter=post.author.name,
+                                              link="http://redd.it/" + post.id,
+                                              post=post)
                 thornado_logger.debug("[Found A Post '{}']".format(post.id))
                 self.send_action(message)
                 self.posts.add(post.id)
                 time.sleep(self.config.get("between_posts", 1))
+            time.sleep(self.config.get("between_checks", TEN_MINUTES))
 
     def quit(self, message):
         super().quit(message)
@@ -89,6 +97,14 @@ class Thornado(irc_helper.IRCBot):
     def join_channel(self, channel):
         super().join_channel(channel)
         self.send_action(self.messages.get("join", "flies in"))
+
+    def is_valid(self, post):
+        # Sanity check.
+        if all(getattr(post, i, None) for i in Thornado.validation):
+            # Posted in the time limit.
+            if post.created - time.time() <= self.config.get("post_time", ONE_DAY):
+                return True
+        return False
 
     @classmethod
     def run_bot(cls, extra_settings={}):

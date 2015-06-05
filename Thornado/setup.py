@@ -12,10 +12,9 @@ packs = setuptools.find_packages()
 
 setuptools.setup(
     name="thornado",
-    version=1.3001,
+    version="1.3.2",
     description="Bot that monitors subreddits and posts the posts to IRC.",
     author="SquishyStrawberry",
     install_requires=reqs,
     packages=packs
 )
-

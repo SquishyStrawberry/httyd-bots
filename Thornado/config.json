@@ -12,6 +12,7 @@
   "post_file": "posts.json",
   "post_time": 86400,
   "between_posts": 1,
+  "between_checks": 600,
   "messages": {
     "join": "flies in.",
     "found_post": "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}",
