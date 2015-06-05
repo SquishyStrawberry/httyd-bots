@@ -26,7 +26,8 @@ class Thornado(irc_helper.IRCBot):
         "id",
         "author",
         "created",
-        "title"
+        "title",
+        "subreddit",
     ]
 
     def __init__(self, config_file, auto_start=True, extra_settings={}):
@@ -66,10 +67,10 @@ class Thornado(irc_helper.IRCBot):
         default = "\u0002has spotted a new post on /r/{subreddit}! \"{title}\" by {submitter} | {link}"
         base_message = self.messages.get("found_post", default)
         while True:
-            posts = self.reddit.get_new()
+            posts = self.reddit.get_subreddit(self.subreddit).get_new()
             posts = filter(self.is_valid, posts)
             for post in posts:
-                message = base_message.format(subreddit=self.subreddit,
+                message = base_message.format(subreddit=post.subreddit,
                                               title=post.title,
                                               submitter=post.author.name,
                                               link="http://redd.it/" + post.id,
