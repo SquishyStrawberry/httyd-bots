@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
+try:
+    from thornado.thornado import Thornado
+except ImportError as e:
+    try:
+        import thornado.thornado
+    except ImportError:
+        pass
+    else:
+        raise e
 
-from thornado.thornado import Thornado
-__version__ = 1.0
-
+__version__ = "1.3.3"
 

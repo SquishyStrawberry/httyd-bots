@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from cloudjumper import __version__
+
 private_message = False
 name_needed = True
 
@@ -17,5 +19,5 @@ def message_handler(bot, message, sender):
             bot.send_action(bot.get_message("location_fail"))
         return True
     elif bot.is_command("version", message, name_needed):
-        bot.send_action(bot.get_message("version").format(version=getattr(bot.__class__, "version", 1337)))
+        bot.send_action(bot.get_message("version").format(version=__version__))
         return True

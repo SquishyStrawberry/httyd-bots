@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import setuptools
+from cloudjumper import __version__
 
 
 if os.path.exists("requirements.txt"):
@@ -15,7 +16,7 @@ packs = setuptools.find_packages()
 def setup():
     setuptools.setup(
         name="cloudjumper",
-        version="2.0.5",
+        version=__version__,
         description="A bot that can learn, attack, eat, etc... in IRC!",
         author="SquishyStrawberry",
         install_requires=reqs,
