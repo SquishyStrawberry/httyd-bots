@@ -104,7 +104,9 @@ class Thornado(irc_helper.IRCBot):
         if all(getattr(post, i, None) for i in Thornado.validation):
             # Posted in the time limit.
             if time.time() - post.created <= self.config.get("post_time", ONE_DAY):
-                return True
+                # Not posted before
+                if post.id not in self.posts:
+                    return True
         return False
 
     @classmethod
