@@ -39,6 +39,9 @@ def message_handler(bot, message, sender):
             if req.ok:
                 soup = BeautifulSoup(next(req.iter_content(bite_size)))
                 if soup.title is not None:
-                    bot.send_action(bot.get_message("urltitle").format(title=soup.title.text.strip()))
+                    title = soup.title.text.strip()
+                    # No useless titles.
+                    if title.lower() != domain.lower():
+                        bot.send_action(bot.get_message("urltitle").format(title=title))
             req.close()
         return True
