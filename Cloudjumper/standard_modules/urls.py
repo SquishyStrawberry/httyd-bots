@@ -3,6 +3,7 @@
 import re
 import requests
 from bs4 import BeautifulSoup
+from requests.exceptions import ConnectionError
 
 private_message = False
 name_needed = True
@@ -28,13 +29,16 @@ def message_handler(bot, message, sender):
         domain = domain.rstrip(".")
         # Mis-spelled on purpose.
         bite_size = bot.config.get("byte_amount", {}).get(domain, 2048)
-        print(bite_size)
-        req = bot.title_session.get(url,
-                                    stream=True, 
-                                    timeout=bot.config.get("request_timeout", 10))
-        if req.ok:
-            soup = BeautifulSoup(next(req.iter_content(bite_size)))
-            if soup.title is not None:
-                bot.send_action(bot.get_message("urltitle").format(title=soup.title.text.strip()))
-        req.close()
+        try:    
+            req = bot.title_session.get(url,
+                                        stream=True, 
+                                        timeout=bot.config.get("request_timeout", 10))
+        except ConnectionError:
+            pass
+        else:
+            if req.ok:
+                soup = BeautifulSoup(next(req.iter_content(bite_size)))
+                if soup.title is not None:
+                    bot.send_action(bot.get_message("urltitle").format(title=soup.title.text.strip()))
+            req.close()
         return True
