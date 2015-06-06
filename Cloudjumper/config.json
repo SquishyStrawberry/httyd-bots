@@ -22,7 +22,12 @@
   "inedible_victims": [],
   "blokes_url": "http://www.joel.pm/blokes",
   "github_location": "https://www.github.com/SquishyStrawberry/httyd-bots",
-  
+  "byte_amount": {
+    "youtube": 16384,
+    "youtu": 16384,
+    "wikipedia": 16384
+  },
+
   "plugins": {
     "standard_modules": ["*"]
   }
