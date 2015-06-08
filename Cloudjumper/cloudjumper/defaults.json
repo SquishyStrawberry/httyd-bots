@@ -26,6 +26,10 @@
     "charges {target}!",
     "unsheathes his teeth and bites {target}!"
   ],
+  "post_not_found": "couldn't find post '{0}'. :(",
+  "post_found": "found a post with id '{0.id}'!",
+  "comment_not_found": "couldn't find comment '{0}'. :[",
+  "comment_found": "found a comment with id '{0.id}'!",
   "deny": "won't follow {nick}'s instructions!",
   "location": "can be found at {}",
   "list_flags": "{user} has flags {flags}.",
