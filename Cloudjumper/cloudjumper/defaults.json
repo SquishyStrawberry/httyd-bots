@@ -26,6 +26,7 @@
     "charges {target}!",
     "unsheathes his teeth and bites {target}!"
   ],
+  "remindme_success": "will remind {nick} '{message}' in {time} seconds.",
   "post_not_found": "couldn't find post '{0}'. :(",
   "post_found": "found a post with id '{0.id}'!",
   "comment_not_found": "couldn't find comment '{0}'. :[",
