@@ -9,5 +9,5 @@ except ImportError as e:
     else:
         raise e
 
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 
