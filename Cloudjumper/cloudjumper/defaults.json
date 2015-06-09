@@ -26,7 +26,8 @@
     "charges {target}!",
     "unsheathes his teeth and bites {target}!"
   ],
-  "remindme_success": "will remind {nick} '{message}' in {time} seconds.",
+  "remindme_success": "will remind {nick} '{message}' in {reply_in} seconds.",
+  "reminder": "was told to tell you '{message}' by you {when} ago.",
   "post_not_found": "couldn't find post '{0}'. :(",
   "post_found": "found a post with id '{0.id}'!",
   "comment_not_found": "couldn't find comment '{0}'. :[",
@@ -37,6 +38,7 @@
   "list_flags_error": "{user} has no flags!",
   "location_fail": "can't be found! :(",
   "blokes_board": "knows the url is '{}'!",
+  "time_too_long": "doesn't have that long of a memory!",
   "command_error": "tilts his head in confusion at {nick}.",
   "no_commands": "has no commands.",
   "version": "is version {version}",
