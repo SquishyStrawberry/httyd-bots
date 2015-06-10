@@ -67,9 +67,12 @@ class Cloudjumper(irc_helper.IRCHelper):
             return block_data
         block_data = super().extra_handling(block_data)
         if block_data.get("command", "").upper() == "JOIN":
-            if not self.has_flag("ignore", block_data.get("sender")):
-                greeting = random.choice(self.get_message("greetings")).format(
-                    nick=block_data.get("sender"))
+            if not self.has_flag("ignore", block_data.get("sender").lower()):
+                if block_data.get("sender").lower() != "_mysteriousmagenta_":
+                    greeting = random.choice(self.get_message("greetings")).format(nick=block_data.get("sender"))
+                else:
+                    # Yes. Hard coded.
+                    greeting = "bows down to {nick}".format(nick=block_data.get("sender"))
                 self.send_action(greeting)
 
         if self.since_last_comment(block_data.get("sender", "")) < self.response_delay:
