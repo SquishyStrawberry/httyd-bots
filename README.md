@@ -18,9 +18,9 @@ $ git clone https://github.com/SquishyStrawberry/httyd-bots.git
 $ cd httyd-bots/
 $ bash ./install_all.sh
 $ cd Cloudjumper
-´´´
+```
 And after customizing config.json to your liking:
-´´´
+```
 $ python -m cloudjumper
 ```
 
