@@ -4,11 +4,12 @@ import setuptools
 from cloudjumper import __version__
 
 
-if os.path.exists("requirements.txt"):
-    with open("requirements.txt") as req_file:
-        reqs = [i for i in req_file if i]
-else:
-    reqs = []
+reqs = [
+    "beautifulsoup4",
+    "requests",
+    "irc_helper",
+    "praw"
+]
 
 packs = setuptools.find_packages()
 
