@@ -35,6 +35,7 @@ def message_handler(bot, message, sender):
                     @bot.basic_command()
                     def dummy(*args, **kwargs):
                         return trigger, response
+                bot.command_database.commit()
             else:
                 bot.send_action(bot.get_message("learn_deny").format(nick=sender))
         else:

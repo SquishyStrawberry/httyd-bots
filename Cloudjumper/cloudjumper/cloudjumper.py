@@ -6,6 +6,7 @@ import re
 import glob
 import json
 import importlib
+import sys
 
 import irc_helper
 
@@ -182,6 +183,8 @@ class Cloudjumper(irc_helper.IRCHelper):
             for directory, plugin_list in plugin_dict.items():
                 if os.path.isdir(directory):
                     os.chdir(directory)
+                    # It works. SHH.
+                    sys.path.insert(0, os.getcwd())
                 else:
                     continue
 
@@ -196,7 +199,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                     if plugin_name.endswith(".py"):
                         plugin_name = plugin_name[:-3]
                     try:
-                        mod = (importlib.import_module(plugin_name))
+                        mod = importlib.import_module(plugin_name)
                     except ImportError as e:
                         Cloudjumper.cloudjumper_logger.debug("[Failed To Load '{}' With Error '{}']".format(plugin_name, e))
                         continue
@@ -205,6 +208,7 @@ class Cloudjumper(irc_helper.IRCHelper):
                     
                     handler_name = getattr(mod, "handler_name", "message_handler")
                     setup_name = getattr(mod, "setup_name", "setup_instance")
+                    # It works. SHH.
 
                     # If you don't want a setup_instance, that's fine.
                     if getattr(mod, setup_name, None) is not None:
