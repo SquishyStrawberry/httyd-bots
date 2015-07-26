@@ -62,6 +62,11 @@ class Cloudjumper(irc_helper.IRCHelper):
         # Make sure this is the last line in __init__!
         self.apply_commands()           
 
+    def get_block(self, *args, **kwargs):
+        block = super().get_block(*args, **kwargs)
+        if self.config.get("super_debug", False):
+            Cloudjumper.cloudjumper_logger.debug("[Got Block: '{}']".format(block))    
+        return block
 
     def extra_handling(self, block_data):
         if block_data.get("sender", "").lower() in Cloudjumper.excluded_nicknames:

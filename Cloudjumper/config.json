@@ -15,6 +15,7 @@
   "database_name": "irc_database.db",
   "response_delay": 3,
   "print_commands": true,
+  "super_debug": false,
   
   "roll_maximum": 1024,
   "dice_maximum": 20,
