@@ -12,8 +12,12 @@ EXPRESSIONS = {
     "-": (operator.sub, 2),
     "/": (operator.truediv, 2),
     "factorial": (math.factorial, 1),
-    "log": (math.log, 2)
+    "log": (math.log, 2),
     "sqrt": (math.sqrt, 1),
+    "xor": (operator.xor, 2),
+    "and": (operator.and_, 2),
+    "or": (operator.or_, 2),
+    "not": (operator.not_, 1),
 }
 # Should these be in the config?
 ALIASES = {
@@ -70,7 +74,8 @@ def message_handler(bot, message, sender):
             to_calc = args[1 + int(name_needed)].split(" ")
             try:
                 res = reverse_polish(to_calc, bot) 
-            except (ValueError, RuntimeError, ZeroDivisionError) as e:
+            except (ValueError, IndexError, RuntimeError, ZeroDivisionError) as e:
+                bot.cloudjumper_logger.debug("[Failed Calculating With {0.__class__.__name__} '{0!s}']".format(e))
                 bot.send_action(bot.get_message("calc_error").format(e))
             else:
                 bot.send_action(bot.get_message("calc_result").format(res))
