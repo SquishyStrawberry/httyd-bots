@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+import multiprocessing
 import operator
 
 private_message = False
@@ -42,7 +43,9 @@ def reverse_polish(exprs, bot=None):
         bot: A Cloudjumper instance.
     """
     # TODO Implement proper errors
+    timeout = getattr(bot, "config", {}).get("calc_timeout", 5)
     stack = []
+    reciever, sender = multiprocessing.Pipe(False)
     for expr in exprs:
         if isinstance(expr, str):
             expr = expr.lower()
@@ -57,7 +60,16 @@ def reverse_polish(exprs, bot=None):
             if expr in EXPRESSIONS:
                 func, argc = EXPRESSIONS[expr]
                 args = [stack.pop(-1) for _ in range(argc)][::-1]
-                res = func(*args)
+                """
+                A Process is used here because they have timing out built in.
+                The sender and receiver are just two ends of a pipe, which are used to send-recieve values.
+                """
+                proc = Process(target=lambda: sender.send(func(*args)))
+                proc.start()
+                proc.join(timeout)
+                if proc.is_alive():
+                    raise TimeoutError("Calculation is taking too long!")
+                res = reciever.recv()
                 if bot is not None:
                     bot.cloudjumper_logger.debug("[Called Function '{}'({}) With Args {}, Result: {}]".format(func.__name__,
                                                                                                           expr,
@@ -82,6 +94,7 @@ def message_handler(bot, message, sender):
             try:
                 res = reverse_polish(to_calc, bot) 
             except Exception as e:
+                # TODO Implement proper messages.
                 bot.cloudjumper_logger.debug("[Failed Calculating With {0.__class__.__name__} '{0!s}']".format(e))
                 bot.send_action(bot.get_message("calc_error").format(e))
             else:
