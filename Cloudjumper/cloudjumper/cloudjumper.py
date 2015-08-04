@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+import glob
+import importlib
+import json
 import logging
 import os
 import random
 import re
-import glob
-import json
-import importlib
 import sys
 
 import irc_helper
