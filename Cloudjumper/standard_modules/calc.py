@@ -61,10 +61,10 @@ def reverse_polish(exprs, bot=None):
                 func, argc = EXPRESSIONS[expr]
                 args = [stack.pop(-1) for _ in range(argc)][::-1]
                 """
-                A Process is used here because they have timing out built in.
+                A multiprocessing.Process is used here because they have timing out built in.
                 The sender and receiver are just two ends of a pipe, which are used to send-recieve values.
                 """
-                proc = Process(target=lambda: sender.send(func(*args)))
+                proc = multiprocessing.Process(target=lambda: sender.send(func(*args)))
                 proc.start()
                 proc.join(timeout)
                 if proc.is_alive():
