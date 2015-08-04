@@ -44,8 +44,13 @@ def reverse_polish(exprs, bot=None):
     # TODO Implement proper errors
     stack = []
     for expr in exprs:
+        if isinstance(expr, str):
+            expr = expr.lower()
         try:
-            stack.append(float(expr))
+            expr = float(expr)
+            if expr.is_integer():
+                expr = int(expr)
+            stack.append(expr)
             if bot is not None:
                 bot.cloudjumper_logger.debug("[Adding num '{}' to stack]".format(stack[-1]))
         except (ValueError, TypeError):
@@ -64,7 +69,9 @@ def reverse_polish(exprs, bot=None):
     if len(stack) != 1:
         raise RuntimeError("Invalid number of operations!")
     stack_res = stack[0]
-    return int(stack_res) if stack_res.is_integer() else round(stack_res, 3)
+    if getattr(stack_res, "is_integer", lambda: False)():
+        stack_res = int(stack_res)
+    return round(stack_res, 3)
 
 
 def message_handler(bot, message, sender):
@@ -74,7 +81,7 @@ def message_handler(bot, message, sender):
             to_calc = args[1 + int(name_needed)].split(" ")
             try:
                 res = reverse_polish(to_calc, bot) 
-            except (ValueError, IndexError, RuntimeError, ZeroDivisionError) as e:
+            except Exception as e:
                 bot.cloudjumper_logger.debug("[Failed Calculating With {0.__class__.__name__} '{0!s}']".format(e))
                 bot.send_action(bot.get_message("calc_error").format(e))
             else:
