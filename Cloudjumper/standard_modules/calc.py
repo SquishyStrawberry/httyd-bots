@@ -2,6 +2,8 @@
 import math
 import multiprocessing
 import operator
+import sys
+import traceback
 
 private_message = False
 name_needed = True
@@ -34,6 +36,13 @@ for k, v in ALIASES.items():
         EXPRESSIONS[i] = EXPRESSIONS[k]
 
 
+def call_func(func, pipe_to, *args, **kwargs):
+    try:
+        pipe_to.send(func(*args, **kwargs))
+    except Exception as e:
+        pipe_to.send(sys.exc_info()[1])
+    
+
 def reverse_polish(exprs, bot=None):
     """
     Calculates a given iterable of Reverse Polish notation expressions.
@@ -59,17 +68,20 @@ def reverse_polish(exprs, bot=None):
         except (ValueError, TypeError):
             if expr in EXPRESSIONS:
                 func, argc = EXPRESSIONS[expr]
-                args = [stack.pop(-1) for _ in range(argc)][::-1]
+                args = tuple(stack.pop(-1) for _ in range(argc))[::-1]
                 """
                 A multiprocessing.Process is used here because they have timing out built in.
                 The sender and receiver are just two ends of a pipe, which are used to send-recieve values.
                 """
-                proc = multiprocessing.Process(target=lambda: sender.send(func(*args)))
+                proc = multiprocessing.Process(target=call_func,
+                                               args=(func, sender) + args)
                 proc.start()
                 proc.join(timeout)
                 if proc.is_alive():
                     raise TimeoutError("Calculation is taking too long!")
                 res = reciever.recv()
+                if isinstance(res, Exception):
+                    raise res
                 if bot is not None:
                     bot.cloudjumper_logger.debug("[Called Function '{}'({}) With Args {}, Result: {}]".format(func.__name__,
                                                                                                           expr,
